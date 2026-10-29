@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ========================================================
+   1. MUTED NAVY THEME (#343F56) — MIDDLE THEME
+   ======================================================== */
+[data-theme="gray"] {
+  color-scheme: dark;
+}
+
+/* Main background: #343F56 */
+[data-theme="gray"] body,
+[data-theme="gray"] .min-h-screen {
+  background-color: #343F56 !important;
+  color: #F4F6FC !important;
+}
+
+/* Navbar & Deep recessed headers: #293449 */
+[data-theme="gray"] header,
+[data-theme="gray"] .bg-slate-950,
+[data-theme="gray"] .bg-slate-950\/90,
+[data-theme="gray"] .bg-slate-950\/80,
+[data-theme="gray"] .bg-slate-950\/70,
+[data-theme="gray"] .bg-slate-950\/60,
+[data-theme="gray"] .bg-slate-950\/40 {
+  background-color: #293449 !important;
+}
+
+/* Cards & Columns: #414D65 */
+[data-theme="gray"] .bg-slate-900,
+[data-theme="gray"] .bg-slate-900\/90,
+[data-theme="gray"] .bg-slate-900\/80,
+[data-theme="gray"] .bg-slate-900\/70,
+[data-theme="gray"] .bg-slate-900\/60,
+[data-theme="gray"] .bg-slate-900\/40 {
+  background-color: #414D65 !important;
+}
+
+/* Secondary pills & elevated buttons: #4B5871 */
+[data-theme="gray"] .bg-slate-800,
+[data-theme="gray"] .bg-slate-800\/80,
+[data-theme="gray"] .bg-slate-800\/60 {
+  background-color: #4B5871 !important;
+}
+
+[data-theme="gray"] .hover\:bg-slate-800:hover,
+[data-theme="gray"] .hover\:bg-slate-700:hover {
+  background-color: #3A465E !important;
+}
+
+/* Inputs, textareas, selects: #4B5871 */
+[data-theme="gray"] input,
+[data-theme="gray"] textarea,
+[data-theme="gray"] select {
+  background-color: #4B5871 !important;
+  color: #F4F6FC !important;
+  border-color: #596780 !important;
+}
+
+[data-theme="gray"] input::placeholder,
+[data-theme="gray"] textarea::placeholder {
+  color: #C0CADD !important;
+}
+
+/* Borders: #596780 */
+[data-theme="gray"] .border-slate-800,
+[data-theme="gray"] .border-slate-800\/90,
+[data-theme="gray"] .border-slate-800\/80,
+[data-theme="gray"] .border-slate-800\/60,
+[data-theme="gray"] .border-slate-700,
+[data-theme="gray"] .border-slate-700\/80,
+[data-theme="gray"] .border-slate-700\/60 {
+  border-color: #596780 !important;
+}
+
+/* Main text: #F4F6FC */
+[data-theme="gray"] .text-slate-100,
+[data-theme="gray"] .text-slate-200,
+[data-theme="gray"] .text-white {
+  color: #F4F6FC !important;
+}
+
+[data-theme="gray"] .text-slate-300 {
+  color: #E2E8F0 !important;
+}
+
+/* Secondary text: #C0CADD */
+[data-theme="gray"] .text-slate-400,
+[data-theme="gray"] .text-slate-500,
+[data-theme="gray"] .text-slate-600 {
+  color: #C0CADD !important;
+}
+
+/* Drawer & Modals */
+[data-theme="gray"] .bg-slate-950\/70,
+[data-theme="gray"] .bg-slate-950\/80 {
+  background-color: rgba(41, 52, 73, 0.75) !important;
+}
+
+/* Highlights & Buttons: Consistent #4361EE */
+[data-theme="gray"] .bg-blue-600 {
+  background-color: #4361EE !important;
+}
+[data-theme="gray"] .hover\:bg-blue-500:hover {
+  background-color: #3651D8 !important;
+}
+
+/* ========================================================
+   2. CRISP LIGHT MODE THEME (Soft White: #F4F6FA)
+   ======================================================== */
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="light"] body,
+[data-theme="light"] .min-h-screen {
+  background-color: #F4F6FA !important; /* Soft white */
+  color: #0f172a !important; /* Slate-900 text */
+}
+
+[data-theme="light"] .bg-slate-950,
+[data-theme="light"] .bg-slate-950\/90,
+[data-theme="light"] .bg-slate-950\/80,
+[data-theme="light"] .bg-slate-950\/70,
+[data-theme="light"] .bg-slate-950\/60,
+[data-theme="light"] .bg-slate-950\/40 {
+  background-color: #e2e8f0 !important; /* Slate-200 contrast */
+}
+
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-900\/90,
+[data-theme="light"] .bg-slate-900\/80,
+[data-theme="light"] .bg-slate-900\/70,
+[data-theme="light"] .bg-slate-900\/60,
+[data-theme="light"] .bg-slate-900\/40 {
+  background-color: #ffffff !important; /* Clean white card */
+}
+
+[data-theme="light"] .bg-slate-800,
+[data-theme="light"] .bg-slate-800\/80,
+[data-theme="light"] .bg-slate-800\/60 {
+  background-color: #F4F6FA !important; /* Soft white-gray pill */
+}
+
+[data-theme="light"] .hover\:bg-slate-800:hover,
+[data-theme="light"] .hover\:bg-slate-700:hover {
+  background-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .border-slate-800,
+[data-theme="light"] .border-slate-800\/90,
+[data-theme="light"] .border-slate-800\/80,
+[data-theme="light"] .border-slate-800\/60,
+[data-theme="light"] .border-slate-700,
+[data-theme="light"] .border-slate-700\/80,
+[data-theme="light"] .border-slate-700\/60 {
+  border-color: #cbd5e1 !important; /* Slate-300 clean border */
+}
+
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200,
+[data-theme="light"] .text-white {
+  color: #0f172a !important; /* Deep slate-900 headings */
+}
+
+[data-theme="light"] .text-slate-300,
+[data-theme="light"] .text-slate-400 {
+  color: #334155 !important; /* Slate-700 body text */
+}
+
+[data-theme="light"] .text-slate-500,
+[data-theme="light"] .text-slate-600 {
+  color: #64748b !important; /* Slate-500 secondary text */
+}
+
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+[data-theme="light"] .shadow-2xl,
+[data-theme="light"] .shadow-xl,
+[data-theme="light"] .shadow-lg {
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08) !important;
+}

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: hiretrack-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INIT_DATABASE: hiretrack
+
+  backend:
+    build: ./backend
+    container_name: hiretrack-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mongo
+    command: npm run dev
+
+volumes:
+  mongo-data:
