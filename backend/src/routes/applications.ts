@@ -342,7 +342,7 @@ router.post('/:id/match', async (req: AuthenticatedRequest, res: Response): Prom
   try {
     const userId = req.user!.userId;
     const applicationId = req.params.id;
-    const { resumeId } = req.body;
+    const { resumeId, forceRefresh } = req.body;
 
     // 1. Fetch application and ensure JD is present
     const application = await Application.findOne({ _id: applicationId, userId });
@@ -376,14 +376,19 @@ router.post('/:id/match', async (req: AuthenticatedRequest, res: Response): Prom
     // 3. Compute hash for cache lookup
     const inputHash = computeInputHash(resume.extractedText, application.jdText);
 
-    // 4. Cache check
-    const existingMatch = await MatchResult.findOne({ userId, inputHash });
-    if (existingMatch) {
-      res.status(200).json({
-        ...existingMatch.toObject(),
-        cached: true,
-      });
-      return;
+    // 4. Cache check (skipped if forceRefresh is true)
+    if (!forceRefresh) {
+      const existingMatch = await MatchResult.findOne({ userId, inputHash });
+      if (existingMatch) {
+        res.status(200).json({
+          ...existingMatch.toObject(),
+          cached: true,
+        });
+        return;
+      }
+    } else {
+      // Clean up previous cached entry for this inputHash so fresh data takes over
+      await MatchResult.deleteMany({ userId, inputHash });
     }
 
     // 5. Daily quota check & reset logic
@@ -425,7 +430,7 @@ router.post('/:id/match', async (req: AuthenticatedRequest, res: Response): Prom
       matchedSkills: analysis.matchedSkills,
       missingSkills: analysis.missingSkills,
       suggestions: analysis.suggestions,
-      modelUsed: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      modelUsed: analysis.modelUsed || process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
     });
 
     await matchRecord.save();

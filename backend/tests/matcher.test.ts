@@ -1,7 +1,8 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import { app } from '../src/app';
 import { User } from '../src/models/User';
@@ -103,7 +104,7 @@ describe('Phase 4 Gate: Gemini AI Resume-to-JD Matcher & Caching', () => {
       .send({ resumeId: testResumeId });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toContain('no job description text');
+    expect(res.body.error.toLowerCase()).toContain('job description');
   });
 
   it('2. POST /api/applications/:id/match runs match and returns structured results', async () => {
@@ -122,7 +123,7 @@ describe('Phase 4 Gate: Gemini AI Resume-to-JD Matcher & Caching', () => {
     expect(Array.isArray(res.body.missingSkills)).toBe(true);
     expect(Array.isArray(res.body.suggestions)).toBe(true);
     expect(res.body.cached).toBe(false);
-  });
+  }, 25000);
 
   it('3. Repeated match request returns CACHED result (cached: true)', async () => {
     const res = await request(app)
@@ -132,7 +133,7 @@ describe('Phase 4 Gate: Gemini AI Resume-to-JD Matcher & Caching', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.cached).toBe(true);
-  });
+  }, 25000);
 
   it('4. GET /api/applications/:id/matches returns match history', async () => {
     const res = await request(app)

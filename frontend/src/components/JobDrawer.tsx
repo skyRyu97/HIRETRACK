@@ -61,7 +61,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
 
   if (!job) return null;
 
-  const handleRunMatch = async () => {
+  const handleRunMatch = async (force: boolean = false) => {
     if (!job.jdText || job.jdText.trim().length < 10) {
       setMatchError('Job description must be at least 10 characters before analyzing.');
       return;
@@ -76,7 +76,8 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
     setMatchError(null);
 
     try {
-      const result = await runMatch(job._id, selectedResumeId || undefined);
+      const shouldForce = force || !!matchResult;
+      const result = await runMatch(job._id, selectedResumeId || undefined, shouldForce);
       setMatchResult(result);
     } catch (err: any) {
       setMatchError(err.response?.data?.error || 'Failed to complete AI match');
@@ -210,7 +211,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
                 </div>
 
                 <button
-                  onClick={handleRunMatch}
+                  onClick={() => handleRunMatch(!!matchResult)}
                   disabled={isMatching || !hasJd || resumes.length === 0}
                   className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
