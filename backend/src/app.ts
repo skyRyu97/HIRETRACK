@@ -6,6 +6,8 @@ import mongoose from 'mongoose';
 import authRoutes from './routes/auth';
 import applicationRoutes from './routes/applications';
 import resumeRoutes from './routes/resumes';
+import analyticsRoutes from './routes/analytics';
+import internalRoutes from './routes/internal';
 
 const app = express();
 
@@ -31,6 +33,8 @@ app.get('/api/health', async (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/resumes', resumeRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/internal', internalRoutes);
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

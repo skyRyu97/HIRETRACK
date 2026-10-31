@@ -4,9 +4,29 @@ let inMemoryToken: string | null = null;
 
 export const setAccessToken = (token: string | null) => {
   inMemoryToken = token;
+  if (typeof window !== 'undefined') {
+    try {
+      if (token) {
+        localStorage.setItem('accessToken', token);
+        localStorage.setItem('hiretrack_token', token);
+        (window as any).__HIRETRACK_TOKEN__ = token;
+      } else {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('hiretrack_token');
+        delete (window as any).__HIRETRACK_TOKEN__;
+      }
+    } catch {
+      // ignore storage access issues
+    }
+  }
 };
 
-export const getAccessToken = () => inMemoryToken;
+export const getAccessToken = () => {
+  if (!inMemoryToken && typeof window !== 'undefined') {
+    inMemoryToken = localStorage.getItem('accessToken') || localStorage.getItem('hiretrack_token');
+  }
+  return inMemoryToken;
+};
 
 export const api = axios.create({
   baseURL: '',

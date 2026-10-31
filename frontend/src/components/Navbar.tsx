@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -8,23 +8,37 @@ import {
   Sparkles,
   LayoutDashboard,
   FileText,
+  BarChart3,
   Moon,
   Contrast,
   Sun,
+  Key,
+  Check,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, accessToken } = useAuth();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const [copiedToken, setCopiedToken] = useState(false);
 
   if (!user) return null;
 
   const isDemo = user.email.includes('demo');
 
+  const handleCopyClipperToken = () => {
+    const token = accessToken || localStorage.getItem('accessToken') || '';
+    if (token) {
+      navigator.clipboard.writeText(token);
+      setCopiedToken(true);
+      setTimeout(() => setCopiedToken(false), 2500);
+    }
+  };
+
   const navLinks = [
     { to: '/board', label: 'Job Board', icon: LayoutDashboard },
     { to: '/resumes', label: 'Resume Vault', icon: FileText },
+    { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
   return (
@@ -78,6 +92,25 @@ export const Navbar: React.FC = () => {
               </span>
             )}
           </div>
+
+          {/* Quick Copy Token for Extension */}
+          <button
+            onClick={handleCopyClipperToken}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold transition-colors"
+            title="Click to copy your authorization token for the Job Clipper extension"
+          >
+            {copiedToken ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400">Token Copied!</span>
+              </>
+            ) : (
+              <>
+                <Key className="w-3.5 h-3.5 text-blue-400" />
+                <span className="hidden sm:inline">Clipper Token</span>
+              </>
+            )}
+          </button>
 
           {/* 3-Way Theme Switcher: Dark, Middle-Gray, Light */}
           <div className="flex items-center p-0.5 rounded-xl bg-slate-800/80 border border-slate-700/60 gap-0.5">

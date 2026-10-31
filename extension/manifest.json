@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "HireTrack AI - 1-Click Job Clipper",
+  "version": "1.0.0",
+  "description": "Clip job opportunities, salaries, and descriptions directly from LinkedIn and Naukri into your HireTrack AI pipeline.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.linkedin.com/*",
+    "*://*.naukri.com/*",
+    "http://localhost:5000/*",
+    "http://localhost:5173/*",
+    "https://*.onrender.com/*",
+    "https://*.vercel.app/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Clip Job to HireTrack"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.linkedin.com/jobs/*",
+        "*://*.naukri.com/job-listings*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}

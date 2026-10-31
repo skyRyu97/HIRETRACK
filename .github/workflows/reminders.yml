@@ -1,0 +1,30 @@
+name: Daily Follow-up Email Reminders
+
+on:
+  schedule:
+    # Runs daily at 03:30 UTC (09:00 AM IST)
+    - cron: '30 3 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  trigger-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger HireTrack Reminder Webhook
+        run: |
+          echo "Triggering HireTrack daily reminders..."
+          API_URL="${{ secrets.PRODUCTION_API_URL || 'https://hiretrack-api.onrender.com' }}/api/internal/reminders"
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}")
+          
+          HTTP_BODY=$(echo "$RESPONSE" | sed '$d')
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $HTTP_BODY"
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Failed to trigger reminder endpoint (status $HTTP_STATUS)"
+            exit 1
+          fi

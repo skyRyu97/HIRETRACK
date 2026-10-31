@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HireTrack AI Clipper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="logo-box">
+      <div class="logo-icon">🎯</div>
+      <span class="logo-title">HireTrack AI</span>
+    </div>
+    <span class="version-tag">v1.0</span>
+  </div>
+
+  <div class="content">
+    <div id="authSection" class="hidden">
+      <p class="section-desc">Connect your HireTrack AI account to start clipping jobs directly.</p>
+
+      <button id="autoConnectBtn" class="btn primary" style="margin-bottom: 12px; background: linear-gradient(135deg, #2563eb, #7c3aed);">
+        <span>⚡ 1-Click Auto-Connect with HireTrack</span>
+      </button>
+
+      <div style="text-align: center; font-size: 10px; color: #64748b; margin-bottom: 10px;">— OR PASTE TOKEN —</div>
+
+      <label class="label" for="tokenInput">Access Token:</label>
+      <input type="text" id="tokenInput" placeholder="Paste access token from HireTrack" />
+      <label class="label" for="backendUrlInput">Backend API URL:</label>
+      <input type="text" id="backendUrlInput" value="http://localhost:5000" />
+      <button id="saveAuthBtn" class="btn" style="margin-top: 8px; background: #334155; color: #f8fafc;">Save Manually</button>
+    </div>
+
+    <div id="clipSection">
+      <div class="form-group">
+        <label class="label" for="roleField">Job Role / Title</label>
+        <input type="text" id="roleField" placeholder="e.g. Full Stack Engineer" />
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="companyField">Company Name</label>
+        <input type="text" id="companyField" placeholder="e.g. Swiggy, Google" />
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="locationField">Location</label>
+        <input type="text" id="locationField" placeholder="e.g. Bengaluru / Remote" />
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="salaryField">Target Compensation</label>
+        <input type="text" id="salaryField" placeholder="e.g. ₹16 - ₹22 LPA" />
+      </div>
+
+      <div class="form-group">
+        <label class="label" for="jdField">Job Description (Chars: <span id="jdChars">0</span>)</label>
+        <textarea id="jdField" rows="3" placeholder="Full job requirements..."></textarea>
+      </div>
+
+      <button id="clipBtn" class="btn primary">
+        <span>+ Save to HireTrack Wishlist</span>
+      </button>
+
+      <div class="footer-actions">
+        <button id="reExtractBtn" class="link-btn">Auto-Re-scrape Page</button>
+        <button id="settingsBtn" class="link-btn">API Settings</button>
+      </div>
+    </div>
+
+    <div id="statusMsg" class="status-msg hidden"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
