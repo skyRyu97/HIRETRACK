@@ -151,26 +151,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrapeActiveTab();
   });
 
+  function applyJobData(d, fallbackTitle) {
+    roleField.value = d?.role || (fallbackTitle ? fallbackTitle.split(/[-|–]/)[0].trim() : '') || 'Software Engineer';
+    companyField.value = d?.company || 'Company';
+    locationField.value = d?.location || 'Remote / Unspecified';
+    salaryField.value = d?.salary || '';
+    jdField.value = d?.jdText || '';
+    jdChars.textContent = (d?.jdText || '').length;
+  }
+
   function scrapeActiveTab() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs || tabs.length === 0) return;
       const tab = tabs[0];
       currentUrl = tab.url || '';
 
-      chrome.tabs.sendMessage(tab.id, { action: 'EXTRACT_JOB' }, (response) => {
-        if (chrome.runtime.lastError || !response || !response.data) {
-          // Fallback extraction
-          roleField.value = tab.title ? tab.title.split('|')[0].trim() : 'Software Engineer';
-          companyField.value = 'Company';
-          locationField.value = 'Remote / Unspecified';
-        } else {
-          const d = response.data;
-          roleField.value = d.role || '';
-          companyField.value = d.company || '';
-          locationField.value = d.location || '';
-          salaryField.value = d.salary || '';
-          jdField.value = d.jdText || '';
-          jdChars.textContent = (d.jdText || '').length;
+      chrome.tabs.sendMessage(tab.id, { action: 'EXTRACT_JOB' }, async (response) => {
+        if (!chrome.runtime.lastError && response && response.data && (response.data.jdText || response.data.role)) {
+          applyJobData(response.data, tab.title);
+          return;
+        }
+
+        // If content script was not running (e.g. tab was open before extension reload), inject dynamically!
+        try {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content.js'],
+          });
+
+          chrome.tabs.sendMessage(tab.id, { action: 'EXTRACT_JOB' }, (res2) => {
+            if (!chrome.runtime.lastError && res2 && res2.data) {
+              applyJobData(res2.data, tab.title);
+            } else {
+              applyJobData({}, tab.title);
+            }
+          });
+        } catch {
+          applyJobData({}, tab.title);
         }
       });
     });

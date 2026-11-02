@@ -80,6 +80,35 @@ export const AnalyticsPage: React.FC = () => {
       if(lEl) loc=lEl.innerText.trim();
       var jEl=document.querySelector('.styles_job-desc-container__txpYf, .dang-inner-html');
       if(jEl) jd=jEl.innerText.trim();
+    } else if(url.includes('indeed.') || url.includes('indeedapply')){
+      var all=Array.from(document.querySelectorAll('*'));
+      var vBtn=all.find(function(e){ return (e.innerText||'').trim().toLowerCase().includes('view full job description'); });
+      var card=null;
+      if(vBtn){
+        var p=vBtn.parentElement;
+        for(var i=0;i<6&&p&&p!==document.body;i++){
+          if(p.innerText&&p.innerText.length>80&&!p.querySelector('input[type="text"]')){ card=p; break; }
+          p=p.parentElement;
+        }
+      }
+      if(card){
+        var tEl=card.querySelector('h1,h2,h3,h4,strong');
+        if(tEl) role=tEl.innerText.trim();
+        var lines=card.innerText.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+        var sub=lines[1]||'';
+        if(sub.includes(' - ')){ company=sub.split(' - ')[0].trim(); loc=sub.split(' - ').slice(1).join(' - ').trim(); }
+        else { company=sub; }
+        jd=card.innerText.replace(role,'').replace(sub,'').replace(/View full job description/gi,'').trim();
+      } else {
+        var tEl=document.querySelector('h1.jobsearch-JobInfoHeader-title, [data-testid="jobsearch-JobInfoHeader-title"], h1');
+        if(tEl) role=tEl.innerText.trim();
+        var cEl=document.querySelector('[data-testid="inlineHeader-companyName"], [data-company-name="true"], .jobsearch-CompanyInfoContainer a');
+        if(cEl) company=cEl.innerText.trim();
+        var lEl=document.querySelector('[data-testid="inlineHeader-companyLocation"], [data-testid="job-location"]');
+        if(lEl) loc=lEl.innerText.trim();
+        var jEl=document.querySelector('#jobDescriptionText, .jobsearch-jobDescriptionText');
+        if(jEl) jd=jEl.innerText.trim();
+      }
     }
 
     if(!role) role=prompt('Job Role / Title:', title) || 'Job Posting';
