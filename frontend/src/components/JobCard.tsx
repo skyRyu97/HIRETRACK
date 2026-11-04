@@ -132,10 +132,10 @@ export const JobCard: React.FC<JobCardProps> = ({
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20"
-            title="Open job posting"
+            title={`Applied on ${job.sourcePortal || 'portal'}`}
           >
-            <ExternalLink className="w-3 h-3" />
-            <span>Link</span>
+            <ExternalLink className="w-3 h-3 shrink-0" />
+            <span className="truncate max-w-[130px] font-medium">{job.sourcePortal || 'Portal Link'}</span>
           </a>
         )}
       </div>

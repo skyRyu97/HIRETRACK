@@ -17,6 +17,7 @@ const applicationInputSchema = z.object({
   company: z.string().min(1, 'Company name is required'),
   role: z.string().min(1, 'Role / Title is required'),
   jobUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  sourcePortal: z.string().optional(),
   location: z.string().optional(),
   salary: z.string().optional(),
   jdText: z.string().max(20000).optional(),
@@ -25,6 +26,24 @@ const applicationInputSchema = z.object({
   followUpAt: z.string().datetime().optional().nullable(),
   appliedAt: z.string().datetime().optional().nullable(),
 });
+
+function deriveSourcePortal(url?: string): string {
+  if (!url) return '';
+  try {
+    const host = new URL(url).hostname.replace('www.', '').toLowerCase();
+    if (host.includes('linkedin.com')) return 'LinkedIn';
+    if (host.includes('indeed.')) return 'Indeed';
+    if (host.includes('naukri.com')) return 'Naukri';
+    if (host.includes('greenhouse.io')) return 'Greenhouse';
+    if (host.includes('lever.co')) return 'Lever';
+    if (host.includes('myworkdayjobs.com')) return 'Workday';
+    if (host.includes('glassdoor.com')) return 'Glassdoor';
+    if (host.includes('wellfound.com')) return 'Wellfound';
+    return `Company Portal (${host})`;
+  } catch {
+    return 'Company Portal';
+  }
+}
 
 const moveInputSchema = z.object({
   status: z.enum(APPLICATION_STATUSES as [ApplicationStatus, ...ApplicationStatus[]]),
@@ -180,6 +199,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void>
       company: data.company,
       role: data.role,
       jobUrl: data.jobUrl || undefined,
+      sourcePortal: data.sourcePortal || deriveSourcePortal(data.jobUrl) || undefined,
       location: data.location || undefined,
       salary: data.salary || undefined,
       jdText: data.jdText || undefined,
@@ -258,6 +278,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response): Promise<voi
     application.company = data.company;
     application.role = data.role;
     application.jobUrl = data.jobUrl || undefined;
+    application.sourcePortal = data.sourcePortal || (data.jobUrl ? deriveSourcePortal(data.jobUrl) : undefined);
     application.location = data.location || undefined;
     application.salary = data.salary || undefined;
     application.jdText = data.jdText || undefined;

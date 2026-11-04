@@ -26,6 +26,7 @@ export interface IApplication {
   company: string;
   role: string;
   jobUrl?: string;
+  sourcePortal?: string;
   location?: string;
   salary?: string;
   jdText?: string;
@@ -43,6 +44,7 @@ export interface ApplicationInput {
   company: string;
   role: string;
   jobUrl?: string;
+  sourcePortal?: string;
   location?: string;
   salary?: string;
   jdText?: string;

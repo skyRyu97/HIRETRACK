@@ -313,12 +313,32 @@ function getCleanPageText() {
     .slice(0, 15000);
 }
 
+// Helper: Derive readable portal/source name from URL
+function deriveSourcePortal(url) {
+  if (!url) return 'Company Portal';
+  try {
+    const host = new URL(url).hostname.replace('www.', '').toLowerCase();
+    if (host.includes('linkedin.com')) return 'LinkedIn';
+    if (host.includes('indeed.') || host.includes('indeedapply')) return 'Indeed';
+    if (host.includes('naukri.com')) return 'Naukri';
+    if (host.includes('greenhouse.io')) return 'Greenhouse (Company Portal)';
+    if (host.includes('lever.co')) return 'Lever (Company Portal)';
+    if (host.includes('myworkdayjobs.com')) return 'Workday (Company Portal)';
+    if (host.includes('glassdoor.com')) return 'Glassdoor';
+    if (host.includes('wellfound.com')) return 'Wellfound';
+    return `Company Portal (${host})`;
+  } catch {
+    return 'Company Portal';
+  }
+}
+
 // ----------------------------------------------------------------------------
 // CASCADE ORCHESTRATOR
 // ----------------------------------------------------------------------------
 function extractJobDetails() {
   const rawUrl = window.location.href;
   const canonicalUrl = resolveCanonicalJobUrl(rawUrl);
+  const sourcePortal = deriveSourcePortal(canonicalUrl);
 
   let result = null;
 
@@ -357,43 +377,86 @@ function extractJobDetails() {
   // 3. Fallback to clean semantic elements if still missing fields
   let role = result?.role || '';
   let company = result?.company || '';
-  let location = result?.location || 'Remote / Unspecified';
+  let location = result?.location || '';
   let salary = result?.salary || '';
   let jdText = result?.jdText || '';
 
+  const cleanDomText = getCleanPageText();
+
+  // Role fallback
   if (!role) {
     const h1 = document.querySelector('h1');
-    if (h1 && !isApplicationFormText(h1.innerText)) {
+    if (h1 && !isApplicationFormText(h1.innerText) && h1.innerText.trim().length > 2) {
       role = h1.innerText.trim();
     } else {
-      role = document.title.split(/[-|–]/)[0].trim();
+      role = document.title.split(/[-|–•]/)[0].trim();
     }
   }
 
+  // Company fallback
   if (!company) {
     const ogSite = document.querySelector('meta[property="og:site_name"]');
     if (ogSite && ogSite.content && !ogSite.content.toLowerCase().includes('indeed')) {
       company = ogSite.content.trim();
     } else {
-      const titleParts = document.title.split(/[-|–]/);
+      const titleParts = document.title.split(/[-|–•]/);
       if (titleParts.length > 1) {
-        company = titleParts[titleParts.length - 1].trim();
+        const last = titleParts[titleParts.length - 1].trim();
+        if (!last.toLowerCase().includes('job') && !last.toLowerCase().includes('career')) {
+          company = last;
+        }
+      }
+    }
+    if (!company) {
+      try {
+        const host = new URL(rawUrl).hostname.replace('www.', '').replace('jobs.', '').replace('careers.', '');
+        const name = host.split('.')[0];
+        company = name.charAt(0).toUpperCase() + name.slice(1);
+      } catch {
+        company = 'Company';
       }
     }
   }
 
-  // Always supply cleaned DOM text for Layer 4 AI fallback if JD is short/missing
-  const cleanDomText = getCleanPageText();
+  // Location fallback (Looks for "Location: ...", or elements with location classes)
+  if (!location || location === 'Remote / Unspecified') {
+    const locMatch = document.body.innerText.match(/(?:Location|Job Location)\s*[:\-]\s*([^\n\r]+)/i);
+    if (locMatch && locMatch[1]) {
+      location = locMatch[1].trim().slice(0, 80);
+    } else {
+      const locEl = document.querySelector(
+        '[class*="location"], [data-testid*="location"], [itemprop="jobLocation"], [class*="workplace"]'
+      );
+      if (locEl && locEl.innerText.trim().length > 2 && locEl.innerText.trim().length < 80) {
+        location = locEl.innerText.trim().replace(/^Location\s*[:\-]?\s*/i, '');
+      } else {
+        location = 'Remote / Unspecified';
+      }
+    }
+  }
+
+  // JD fallback (Never leave blank on any company career portal!)
+  if (!jdText) {
+    const possibleJd = document.querySelector(
+      '#job-description, .job-description, [class*="jobDescription"], [class*="job-details"], [class*="jobContent"], [class*="job-content"], [class*="job-body"], [class*="jobBody"], [class*="posting-content"], [class*="description"], article, main, [role="main"]'
+    );
+    if (possibleJd && !isApplicationFormText(possibleJd.innerText) && possibleJd.innerText.trim().length > 80) {
+      jdText = possibleJd.innerText.trim();
+    } else if (cleanDomText && cleanDomText.length > 100) {
+      jdText = cleanDomText;
+    }
+  }
 
   return {
     url: canonicalUrl,
+    sourcePortal,
     role: role || 'Software Engineer',
     company: company && !company.toLowerCase().includes('indeed') ? company : 'Company',
     location: location || 'Remote / Unspecified',
     salary: salary || '',
     jdText: !isApplicationFormText(jdText) ? jdText : '',
     cleanDomText,
-    layer: result?.layer || 'L4:Heuristic',
+    layer: result?.layer || 'L4:Local',
   };
 }
 

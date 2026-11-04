@@ -19,82 +19,105 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settingsBtn = document.getElementById('settingsBtn');
   const statusMsg = document.getElementById('statusMsg');
   const layerTag = document.getElementById('layerTag');
+  const portalLabel = document.getElementById('portalLabel');
 
   let currentUrl = '';
+  let currentPortal = 'Company Portal';
+
+  function deriveSourcePortal(url) {
+    if (!url) return 'Company Portal';
+    try {
+      const host = new URL(url).hostname.replace('www.', '').toLowerCase();
+      if (host.includes('linkedin.com')) return 'LinkedIn';
+      if (host.includes('indeed.') || host.includes('indeedapply')) return 'Indeed';
+      if (host.includes('naukri.com')) return 'Naukri';
+      if (host.includes('greenhouse.io')) return 'Greenhouse (Company Portal)';
+      if (host.includes('lever.co')) return 'Lever (Company Portal)';
+      if (host.includes('myworkdayjobs.com')) return 'Workday (Company Portal)';
+      if (host.includes('glassdoor.com')) return 'Glassdoor';
+      if (host.includes('wellfound.com')) return 'Wellfound';
+      return `Company Portal (${host})`;
+    } catch {
+      return 'Company Portal';
+    }
+  }
 
   jdField.addEventListener('input', () => {
     jdChars.textContent = jdField.value.length;
   });
 
-  async function tryAutoConnect(silent = false) {
-    chrome.tabs.query({}, async (tabs) => {
-      const hiretrackTab = tabs.find(
-        (t) => t.url && (t.url.includes('localhost:5173') || t.url.includes('hiretrack'))
-      );
+  async function fetchFreshToken(backend = 'http://localhost:5000') {
+    return new Promise((resolve) => {
+      chrome.tabs.query({}, async (tabs) => {
+        const hiretrackTab = tabs.find(
+          (t) =>
+            t.url &&
+            (t.url.includes('localhost:5173') ||
+              t.url.includes('hiretrack') ||
+              (t.title && t.title.toLowerCase().includes('hiretrack')))
+        );
 
-      if (!hiretrackTab || !hiretrackTab.id) {
-        if (!silent) {
-          showStatus('No open HireTrack tab found. Please open http://localhost:5173 and log in!', 'error');
-        }
-        return;
-      }
-
-      try {
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: hiretrackTab.id },
-          func: () => {
-            return {
-              token:
-                localStorage.getItem('accessToken') ||
-                localStorage.getItem('hiretrack_token') ||
-                (window).__HIRETRACK_TOKEN__ ||
-                null,
-            };
-          },
-        });
-
-        let token = results && results[0] && results[0].result ? results[0].result.token : null;
-
-        // Fallback: If localStorage was empty, attempt direct refresh fetch
-        if (!token) {
+        if (hiretrackTab && hiretrackTab.id) {
           try {
-            const resp = await fetch('http://localhost:5000/api/auth/refresh', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
+            const results = await chrome.scripting.executeScript({
+              target: { tabId: hiretrackTab.id },
+              func: () =>
+                localStorage.getItem('hiretrack_token') ||
+                localStorage.getItem('accessToken') ||
+                window.__HIRETRACK_TOKEN__ ||
+                null,
             });
-            if (resp.ok) {
-              const data = await resp.json();
-              if (data.accessToken) {
-                token = data.accessToken;
-              }
+            const tabToken = results && results[0] && results[0].result ? results[0].result : null;
+            if (tabToken) {
+              resolve(tabToken);
+              return;
             }
-          } catch (e) {
-            // ignore
+          } catch {
+            // ignore script injection errors
           }
         }
 
-        if (token) {
-          const backend = 'http://localhost:5000';
-          chrome.storage.sync.set({ hiretrack_token: token, hiretrack_backend: backend }, () => {
-            showStatus('⚡ Successfully connected to HireTrack AI!', 'success');
-            setTimeout(() => {
-              authSection.classList.add('hidden');
-              clipSection.classList.remove('hidden');
-              scrapeActiveTab();
-            }, 500);
+        // Fallback: try refresh cookie against backend
+        try {
+          const resp = await fetch(`${backend}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
           });
-        } else {
-          if (!silent) {
-            showStatus('Please refresh your HireTrack tab once (press F5) so it can sync your token!', 'error');
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.accessToken) {
+              resolve(data.accessToken);
+              return;
+            }
           }
+        } catch {
+          // ignore network errors
         }
-      } catch (err) {
-        if (!silent) {
-          showStatus('Could not read tab: ' + err.message, 'error');
-        }
-      }
+
+        resolve(null);
+      });
     });
+  }
+
+  async function tryAutoConnect(silent = false) {
+    const backend = backendUrlInput.value.trim() || 'http://localhost:5000';
+    const token = await fetchFreshToken(backend);
+
+    if (token) {
+      chrome.storage.sync.set({ hiretrack_token: token, hiretrack_backend: backend }, () => {
+        showStatus('⚡ Successfully connected to HireTrack AI!', 'success');
+        setTimeout(() => {
+          authSection.classList.add('hidden');
+          clipSection.classList.remove('hidden');
+          scrapeActiveTab();
+        }, 500);
+      });
+    } else {
+      if (!silent) {
+        showStatus('No active HireTrack session found. Please open http://localhost:5173 and log in!', 'error');
+      }
+    }
   }
 
   if (autoConnectBtn) {
@@ -156,17 +179,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (d?.url) {
       currentUrl = d.url;
     }
+    currentPortal = d?.sourcePortal || deriveSourcePortal(currentUrl);
+    if (portalLabel) {
+      portalLabel.textContent = currentPortal;
+    }
     if (d?.layer && layerTag) {
       layerTag.textContent = d.layer;
     }
 
-    let role = d?.role || (fallbackTitle ? fallbackTitle.split(/[-|–]/)[0].trim() : '') || 'Software Engineer';
+    let role = d?.role || (fallbackTitle ? fallbackTitle.split(/[-|–•]/)[0].trim() : '') || 'Software Engineer';
     let company = d?.company || 'Company';
     let location = d?.location || 'Remote / Unspecified';
     let salary = d?.salary || '';
     let jdText = d?.jdText || '';
 
-    // If company is still generic or JD is missing/very short, call Layer 4 Backend AI Fallback!
+    // Immediately populate all fields so the user sees extracted data with zero lag
+    roleField.value = role;
+    companyField.value = company;
+    locationField.value = location;
+    salaryField.value = salary;
+    jdField.value = jdText;
+    jdChars.textContent = jdText.length;
+
+    // Only call Layer 4 Backend AI Fallback if critical fields are missing and clean text is available
     const needsAi = (!jdText || jdText.length < 50 || company === 'Company') && d?.cleanDomText && d.cleanDomText.length > 50;
 
     if (needsAi) {
@@ -175,6 +210,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const token = stored.hiretrack_token;
         const backend = stored.hiretrack_backend || 'http://localhost:5000';
         if (token) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
           try {
             const res = await fetch(`${backend}/api/applications/extract-job`, {
               method: 'POST',
@@ -186,37 +223,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                 rawText: d.cleanDomText,
                 url: currentUrl,
               }),
+              signal: controller.signal,
             });
+            clearTimeout(timeoutId);
             if (res.ok) {
               const aiData = await res.json();
-              if (aiData.role && role === 'Software Engineer') role = aiData.role;
-              if (aiData.company && company === 'Company') company = aiData.company;
-              if (aiData.location && location === 'Remote / Unspecified') location = aiData.location;
-              if (aiData.salary && !salary) salary = aiData.salary;
-              if (aiData.jdText && (!jdText || jdText.length < 50)) jdText = aiData.jdText;
+              if (aiData.role && role === 'Software Engineer') roleField.value = aiData.role;
+              if (aiData.company && company === 'Company') companyField.value = aiData.company;
+              if (aiData.location && location === 'Remote / Unspecified') locationField.value = aiData.location;
+              if (aiData.salary && !salary) salaryField.value = aiData.salary;
+              if (aiData.jdText && (!jdText || jdText.length < 50)) {
+                jdField.value = aiData.jdText;
+                jdChars.textContent = aiData.jdText.length;
+              }
               if (layerTag) layerTag.textContent = '✨ L4:Gemini AI';
+            } else {
+              if (layerTag) layerTag.textContent = d?.layer || 'L4:Local';
             }
           } catch {
-            if (layerTag) layerTag.textContent = d?.layer || 'Cascade Ready';
+            clearTimeout(timeoutId);
+            if (layerTag) layerTag.textContent = d?.layer || 'L4:Local';
           }
+        } else {
+          if (layerTag) layerTag.textContent = d?.layer || 'L4:Local';
         }
-
-        roleField.value = role;
-        companyField.value = company;
-        locationField.value = location;
-        salaryField.value = salary;
-        jdField.value = jdText;
-        jdChars.textContent = jdText.length;
       });
-      return;
     }
-
-    roleField.value = role;
-    companyField.value = company;
-    locationField.value = location;
-    salaryField.value = salary;
-    jdField.value = jdText;
-    jdChars.textContent = jdText.length;
   }
 
   function scrapeActiveTab() {
@@ -268,30 +300,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     clipBtn.innerHTML = '<span>Saving...</span>';
 
     chrome.storage.sync.get(['hiretrack_token', 'hiretrack_backend'], async (stored) => {
-      const token = stored.hiretrack_token;
+      let token = stored.hiretrack_token;
       const backend = stored.hiretrack_backend || 'http://localhost:5000';
 
-      try {
-        const response = await fetch(`${backend}/api/applications`, {
+      const payload = {
+        company,
+        role,
+        location: location || undefined,
+        salary: salary || undefined,
+        jobUrl: currentUrl || undefined,
+        sourcePortal: currentPortal || undefined,
+        jdText: jdText || undefined,
+        status: 'wishlist',
+        notes: `Applied on: ${currentPortal}\nClipped with HireTrack Extension on ${new Date().toLocaleDateString()}`,
+      };
+
+      const sendSave = (authToken) =>
+        fetch(`${backend}/api/applications`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${authToken}`,
           },
-          body: JSON.stringify({
-            company,
-            role,
-            location: location || undefined,
-            salary: salary || undefined,
-            jobUrl: currentUrl || undefined,
-            jdText: jdText || undefined,
-            status: 'wishlist',
-            notes: `Clipped with HireTrack Chrome Extension on ${new Date().toLocaleDateString()}`,
-          }),
+          body: JSON.stringify(payload),
         });
+
+      try {
+        let response = await sendSave(token);
+
+        // Auto-heal expired token on 401
+        if (response.status === 401) {
+          const freshToken = await fetchFreshToken(backend);
+          if (freshToken) {
+            token = freshToken;
+            chrome.storage.sync.set({ hiretrack_token: freshToken });
+            response = await sendSave(freshToken);
+          }
+        }
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            throw new Error('Session expired. Please log in to HireTrack (http://localhost:5173) and click 1-Click Auto-Connect.');
+          }
           throw new Error(errData.error || `HTTP ${response.status}`);
         }
 

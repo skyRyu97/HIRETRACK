@@ -129,9 +129,10 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
                     href={job.jobUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+                    className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-medium"
+                    title={`Applied on ${job.sourcePortal || 'portal'}`}
                   >
-                    <span>Posting</span>
+                    <span>{job.sourcePortal || 'Job Posting'}</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}

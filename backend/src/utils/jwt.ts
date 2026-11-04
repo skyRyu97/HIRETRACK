@@ -5,6 +5,16 @@ import { Response } from 'express';
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_12345';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_jwt_refresh_secret_67890';
 
+// Enforce production security: prevent booting with dev secrets in production
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_ACCESS_SECRET || process.env.JWT_ACCESS_SECRET.includes('dev_jwt')) {
+    throw new Error('[Security Error] Production deployment requires a secure, non-default JWT_ACCESS_SECRET.');
+  }
+  if (!process.env.JWT_REFRESH_SECRET || process.env.JWT_REFRESH_SECRET.includes('dev_jwt')) {
+    throw new Error('[Security Error] Production deployment requires a secure, non-default JWT_REFRESH_SECRET.');
+  }
+}
+
 export interface TokenPayload {
   userId: string;
   email: string;
@@ -12,7 +22,7 @@ export interface TokenPayload {
 }
 
 export function signAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, ACCESS_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, ACCESS_SECRET, { expiresIn: '7d' });
 }
 
 export function signRefreshToken(payload: TokenPayload): string {

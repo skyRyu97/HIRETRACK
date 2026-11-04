@@ -25,22 +25,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const syncToken = (t: string | null) => {
+    setAccessToken(t);
+    setToken(t);
+    if (t) {
+      localStorage.setItem('hiretrack_token', t);
+      (window as any).__HIRETRACK_TOKEN__ = t;
+    } else {
+      localStorage.removeItem('hiretrack_token');
+      delete (window as any).__HIRETRACK_TOKEN__;
+    }
+  };
+
   // Restore user session on application load via httpOnly refresh token
   useEffect(() => {
     const restoreSession = async () => {
       try {
         const refreshRes = await api.post('/api/auth/refresh');
         const newAccessToken = refreshRes.data.accessToken;
-        setAccessToken(newAccessToken);
-        setToken(newAccessToken);
+        syncToken(newAccessToken);
 
         const meRes = await api.get('/api/auth/me');
         setUser(meRes.data.user);
       } catch {
         // No valid session found; user stays logged out
-        setAccessToken(null);
+        syncToken(null);
         setUser(null);
-        setToken(null);
       } finally {
         setIsLoading(false);
       }
@@ -52,24 +62,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     const res = await api.post('/api/auth/login', { email, password });
     const { user: userData, accessToken } = res.data;
-    setAccessToken(accessToken);
-    setToken(accessToken);
+    syncToken(accessToken);
     setUser(userData);
   };
 
   const register = async (name: string, email: string, password: string) => {
     const res = await api.post('/api/auth/register', { name, email, password });
     const { user: userData, accessToken } = res.data;
-    setAccessToken(accessToken);
-    setToken(accessToken);
+    syncToken(accessToken);
     setUser(userData);
   };
 
   const loginDemo = async () => {
     const res = await api.post('/api/auth/demo');
     const { user: userData, accessToken } = res.data;
-    setAccessToken(accessToken);
-    setToken(accessToken);
+    syncToken(accessToken);
     setUser(userData);
   };
 
@@ -77,8 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await api.post('/api/auth/logout');
     } finally {
-      setAccessToken(null);
-      setToken(null);
+      syncToken(null);
       setUser(null);
     }
   };

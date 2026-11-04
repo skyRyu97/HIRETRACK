@@ -27,6 +27,7 @@ export interface IApplication extends Document {
   company: string;
   role: string;
   jobUrl?: string;
+  sourcePortal?: string;
   location?: string;
   salary?: string;
   jdText?: string;
@@ -76,6 +77,11 @@ const applicationSchema = new Schema<IApplication>(
     jobUrl: {
       type: String,
       trim: true,
+    },
+    sourcePortal: {
+      type: String,
+      trim: true,
+      default: '',
     },
     location: {
       type: String,
