@@ -1,0 +1,448 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "HireTrack AI Architecture & Data Flow (Corrected)",
+    "output": ".archify/architecture-overview-20261103-163000/overview.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/skyRyu97/HIRETRACK.git",
+      "revision": "1c086a58e82691bcbc6a2b6d2d4c7d3dd6e21f64",
+      "provider": "github",
+      "link_mode": "web"
+    }
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "icon": "person",
+      "label": "Job Seeker",
+      "sublabel": "Web Browser Client",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        120,
+        64
+      ]
+    },
+    {
+      "id": "frontend",
+      "type": "frontend",
+      "icon": "frontend",
+      "label": "React 18 Dashboard",
+      "sublabel": "Kanban, Vault, Analytics UI",
+      "tag": "In-Memory Token",
+      "pos": [
+        250,
+        60
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/App.tsx",
+          "line": 18,
+          "end_line": 48
+        },
+        {
+          "path": "frontend/src/components/KanbanBoard.tsx",
+          "line": 29,
+          "end_line": 50
+        },
+        {
+          "path": "frontend/src/api/client.ts",
+          "line": 1,
+          "end_line": 35
+        }
+      ]
+    },
+    {
+      "id": "api_core",
+      "type": "backend",
+      "icon": "backend",
+      "label": "Express API Core",
+      "sublabel": "Port 5000, CORS, Helmet",
+      "pos": [
+        490,
+        60
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/app.ts",
+          "line": 12,
+          "end_line": 38
+        },
+        {
+          "path": "backend/src/server.ts",
+          "line": 8,
+          "end_line": 24
+        }
+      ]
+    },
+    {
+      "id": "auth_service",
+      "type": "security",
+      "icon": "security",
+      "label": "JWT Auth Guard",
+      "sublabel": "15m Access & 7d Rotation",
+      "tag": "requireAuth",
+      "pos": [
+        720,
+        60
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/middleware/auth.ts",
+          "line": 9,
+          "end_line": 28
+        },
+        {
+          "path": "backend/src/routes/auth.ts",
+          "line": 14,
+          "end_line": 45
+        }
+      ]
+    },
+    {
+      "id": "resume_vault",
+      "type": "backend",
+      "icon": "briefcase",
+      "label": "Resume Vault",
+      "sublabel": "Multer RAM & pdf-parse",
+      "pos": [
+        490,
+        220
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/resumes.ts",
+          "line": 14,
+          "end_line": 32
+        }
+      ]
+    },
+    {
+      "id": "app_kanban",
+      "type": "backend",
+      "icon": "backend",
+      "label": "Kanban & Match Gate",
+      "sublabel": "IDOR, Cache & Quota Checks",
+      "tag": "Controller",
+      "pos": [
+        720,
+        220
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/applications.ts",
+          "line": 46,
+          "end_line": 85
+        },
+        {
+          "path": "backend/src/routes/applications.ts",
+          "line": 341,
+          "end_line": 446
+        }
+      ]
+    },
+    {
+      "id": "matcher_service",
+      "type": "backend",
+      "icon": "backend",
+      "label": "AI Match Engine",
+      "sublabel": "Stateless Prompt & Normalizer",
+      "pos": [
+        970,
+        220
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/services/matcher.ts",
+          "line": 84,
+          "end_line": 175
+        }
+      ]
+    },
+    {
+      "id": "gemini_cloud",
+      "type": "external",
+      "icon": "cloud",
+      "label": "Gemini AI Cascade",
+      "sublabel": "3.5-Flash -> Lite -> Heuristic",
+      "tag": "AI Cloud",
+      "pos": [
+        1250,
+        220
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/services/matcher.ts",
+          "line": 145,
+          "end_line": 199
+        }
+      ]
+    },
+    {
+      "id": "mongodb",
+      "type": "database",
+      "icon": "database",
+      "label": "MongoDB Database",
+      "sublabel": "Users, Jobs, Resumes, Matches",
+      "tag": "Mongoose ODM",
+      "pos": [
+        720,
+        380
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/server.ts",
+          "line": 11,
+          "end_line": 20
+        },
+        {
+          "path": "backend/src/models/Application.ts",
+          "line": 1,
+          "end_line": 35
+        }
+      ]
+    },
+    {
+      "id": "cron_service",
+      "type": "backend",
+      "icon": "clock",
+      "label": "Cron Reminder Engine",
+      "sublabel": "x-cron-secret & followUpAt scan",
+      "pos": [
+        970,
+        380
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/internal.ts",
+          "line": 8,
+          "end_line": 45
+        }
+      ]
+    },
+    {
+      "id": "analytics_engine",
+      "type": "backend",
+      "icon": "backend",
+      "label": "Analytics Engine",
+      "sublabel": "Velocity & Conversion Stats",
+      "pos": [
+        720,
+        540
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/analytics.ts",
+          "line": 9,
+          "end_line": 54
+        }
+      ]
+    },
+    {
+      "id": "mailer_service",
+      "type": "backend",
+      "icon": "messagebus",
+      "label": "Mailer Service",
+      "sublabel": "Resend Cloud / Console Digest",
+      "pos": [
+        970,
+        540
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "backend/src/services/mailer.ts",
+          "line": 7,
+          "end_line": 45
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "HireTrack Backend Environment (Node.js & MongoDB)",
+      "wraps": [
+        "api_core",
+        "auth_service",
+        "resume_vault",
+        "app_kanban",
+        "matcher_service",
+        "mongodb",
+        "cron_service",
+        "analytics_engine",
+        "mailer_service"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Protected Domain Services (requireAuth)",
+      "wraps": [
+        "resume_vault",
+        "app_kanban",
+        "matcher_service"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-frontend",
+      "from": "user",
+      "to": "frontend",
+      "label": "User Actions",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "frontend-api",
+      "from": "frontend",
+      "to": "api_core",
+      "label": "Axios HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-auth",
+      "from": "api_core",
+      "to": "auth_service",
+      "label": "Verify Token",
+      "variant": "security"
+    },
+    {
+      "id": "api-resume",
+      "from": "api_core",
+      "to": "resume_vault",
+      "label": "/api/resumes"
+    },
+    {
+      "id": "api-kanban",
+      "from": "api_core",
+      "to": "app_kanban",
+      "label": "/api/applications"
+    },
+    {
+      "id": "resume-db",
+      "from": "resume_vault",
+      "to": "mongodb",
+      "label": "Save Resumes"
+    },
+    {
+      "id": "kanban-db",
+      "from": "app_kanban",
+      "to": "mongodb",
+      "label": "CRUD Jobs, Cache & Quota",
+      "variant": "emphasis"
+    },
+    {
+      "id": "kanban-matcher",
+      "from": "app_kanban",
+      "to": "matcher_service",
+      "label": "Trigger Match",
+      "variant": "emphasis"
+    },
+    {
+      "id": "matcher-gemini",
+      "from": "matcher_service",
+      "to": "gemini_cloud",
+      "label": "Structured Prompt",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "cron-db",
+      "from": "cron_service",
+      "to": "mongodb",
+      "label": "Scan Due Jobs"
+    },
+    {
+      "id": "cron-mailer",
+      "from": "cron_service",
+      "to": "mailer_service",
+      "label": "Dispatch Digests",
+      "variant": "emphasis"
+    },
+    {
+      "id": "analytics-db",
+      "from": "analytics_engine",
+      "to": "mongodb",
+      "label": "Run Aggregations"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Client & In-Memory Session",
+      "items": [
+        "React 18 SPA with Kanban board, Resume Vault, and Analytics velocity graphs",
+        "Axios client holds JWT access tokens strictly in memory (no localStorage leaks)",
+        "Automatic 401 response interceptor silently refreshes tokens via httpOnly cookie"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Application Core & Clean Cascade",
+      "items": [
+        "Multer memory storage processes PDFs in RAM with zero disk persistence",
+        "Strict IDOR verification ensures users only read, update, or clip their own records",
+        "Cascading deletion cleans up MatchResults when jobs or resumes are removed"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "AI Match Cascade & Automation",
+      "items": [
+        "Kanban controller checks SHA-256 hash cache and 10/day quota before AI invocation",
+        "Gemini cascade tries 3.5-Flash, falls back to Flash-Lite, then offline heuristic",
+        "Daily cron scans indexed followUpAt timestamps and emails digests via Resend"
+      ]
+    }
+  ]
+}

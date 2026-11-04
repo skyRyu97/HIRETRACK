@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { fetchAnalyticsSummary } from '../api/analytics';
+import { useAuth } from '../context/AuthContext';
 import { IAnalyticsSummary } from '../types/analytics';
 import {
   TrendingUp,
@@ -50,7 +51,8 @@ export const AnalyticsPage: React.FC = () => {
     loadAnalytics();
   }, []);
 
-  const token = localStorage.getItem('accessToken') || '';
+  const { accessToken } = useAuth();
+  const token = accessToken || '';
   const apiUrl = window.location.origin;
 
   // 1-Click Zero-Install Bookmarklet Code

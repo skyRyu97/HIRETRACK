@@ -9,9 +9,16 @@ const router = Router();
 router.post('/reminders', async (req: Request, res: Response): Promise<void> => {
   try {
     const cronSecretHeader = req.headers['x-cron-secret'];
-    const expectedSecret = process.env.CRON_SECRET || 'dev_cron_secret_12345';
+    const expectedSecret = process.env.CRON_SECRET;
 
-    if (!cronSecretHeader || cronSecretHeader !== expectedSecret) {
+    if (process.env.NODE_ENV === 'production' && !expectedSecret) {
+      console.error('[Internal Route] CRON_SECRET is not configured in production.');
+      res.status(500).json({ error: 'Server configuration error: CRON_SECRET not configured' });
+      return;
+    }
+
+    const secretToMatch = expectedSecret || 'dev_cron_secret_12345';
+    if (!cronSecretHeader || cronSecretHeader !== secretToMatch) {
       res.status(401).json({ error: 'Unauthorized: Invalid or missing cron secret' });
       return;
     }

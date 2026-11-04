@@ -27,7 +27,7 @@ export const Navbar: React.FC = () => {
   const isDemo = user.email.includes('demo');
 
   const handleCopyClipperToken = () => {
-    const token = accessToken || localStorage.getItem('accessToken') || '';
+    const token = accessToken || '';
     if (token) {
       navigator.clipboard.writeText(token);
       setCopiedToken(true);

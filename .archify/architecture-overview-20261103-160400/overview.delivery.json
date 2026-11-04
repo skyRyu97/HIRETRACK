@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "19738294-9203-4f28-8cc2-0ffea811da95",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\gsd10\\.gemini\\antigravity\\scratch\\hiretrack-ai\\.archify\\architecture-overview-20261103-160400\\candidate.json",
+  "output": "C:\\Users\\gsd10\\.gemini\\antigravity\\scratch\\hiretrack-ai\\.archify\\architecture-overview-20261103-160400\\overview.html",
+  "specification": {
+    "sha256": "54804603cfe057b85f9fabe1bf1e3f3fb02bf392c673920342c6b6b59363b414",
+    "bytes": 6273
+  },
+  "artifact": {
+    "sha256": "5c48a42ed064f2a167c14a176d07205d71a81cc855af8fc27dca02c88c868288",
+    "bytes": 853325
+  }
+}

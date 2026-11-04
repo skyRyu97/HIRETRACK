@@ -122,6 +122,9 @@ const applicationSchema = new Schema<IApplication>(
 // Compound index for fast board queries scoped by user, status, and sort order
 applicationSchema.index({ userId: 1, status: 1, position: 1 });
 
+// Index for cron reminder queries filtering due follow-ups across active stages
+applicationSchema.index({ followUpAt: 1, status: 1 });
+
 export const Application = mongoose.model<IApplication>(
   'Application',
   applicationSchema

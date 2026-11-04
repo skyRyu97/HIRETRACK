@@ -3,6 +3,7 @@ import multer from 'multer';
 import pdfParse from 'pdf-parse';
 import { z } from 'zod';
 import { Resume } from '../models/Resume';
+import { MatchResult } from '../models/MatchResult';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -238,6 +239,9 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response): Promise<
       res.status(404).json({ error: 'Resume not found' });
       return;
     }
+
+    // Cascade delete associated match results
+    await MatchResult.deleteMany({ resumeId: req.params.id, userId });
 
     res.status(200).json({ message: 'Resume deleted successfully' });
   } catch (err: any) {

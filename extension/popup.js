@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const reExtractBtn = document.getElementById('reExtractBtn');
   const settingsBtn = document.getElementById('settingsBtn');
   const statusMsg = document.getElementById('statusMsg');
+  const layerTag = document.getElementById('layerTag');
 
   let currentUrl = '';
 
@@ -151,13 +152,71 @@ document.addEventListener('DOMContentLoaded', async () => {
     scrapeActiveTab();
   });
 
-  function applyJobData(d, fallbackTitle) {
-    roleField.value = d?.role || (fallbackTitle ? fallbackTitle.split(/[-|–]/)[0].trim() : '') || 'Software Engineer';
-    companyField.value = d?.company || 'Company';
-    locationField.value = d?.location || 'Remote / Unspecified';
-    salaryField.value = d?.salary || '';
-    jdField.value = d?.jdText || '';
-    jdChars.textContent = (d?.jdText || '').length;
+  async function applyJobData(d, fallbackTitle) {
+    if (d?.url) {
+      currentUrl = d.url;
+    }
+    if (d?.layer && layerTag) {
+      layerTag.textContent = d.layer;
+    }
+
+    let role = d?.role || (fallbackTitle ? fallbackTitle.split(/[-|–]/)[0].trim() : '') || 'Software Engineer';
+    let company = d?.company || 'Company';
+    let location = d?.location || 'Remote / Unspecified';
+    let salary = d?.salary || '';
+    let jdText = d?.jdText || '';
+
+    // If company is still generic or JD is missing/very short, call Layer 4 Backend AI Fallback!
+    const needsAi = (!jdText || jdText.length < 50 || company === 'Company') && d?.cleanDomText && d.cleanDomText.length > 50;
+
+    if (needsAi) {
+      if (layerTag) layerTag.textContent = '⚡ AI Enhancing...';
+      chrome.storage.sync.get(['hiretrack_token', 'hiretrack_backend'], async (stored) => {
+        const token = stored.hiretrack_token;
+        const backend = stored.hiretrack_backend || 'http://localhost:5000';
+        if (token) {
+          try {
+            const res = await fetch(`${backend}/api/applications/extract-job`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                rawText: d.cleanDomText,
+                url: currentUrl,
+              }),
+            });
+            if (res.ok) {
+              const aiData = await res.json();
+              if (aiData.role && role === 'Software Engineer') role = aiData.role;
+              if (aiData.company && company === 'Company') company = aiData.company;
+              if (aiData.location && location === 'Remote / Unspecified') location = aiData.location;
+              if (aiData.salary && !salary) salary = aiData.salary;
+              if (aiData.jdText && (!jdText || jdText.length < 50)) jdText = aiData.jdText;
+              if (layerTag) layerTag.textContent = '✨ L4:Gemini AI';
+            }
+          } catch {
+            if (layerTag) layerTag.textContent = d?.layer || 'Cascade Ready';
+          }
+        }
+
+        roleField.value = role;
+        companyField.value = company;
+        locationField.value = location;
+        salaryField.value = salary;
+        jdField.value = jdText;
+        jdChars.textContent = jdText.length;
+      });
+      return;
+    }
+
+    roleField.value = role;
+    companyField.value = company;
+    locationField.value = location;
+    salaryField.value = salary;
+    jdField.value = jdText;
+    jdChars.textContent = jdText.length;
   }
 
   function scrapeActiveTab() {

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\gsd10\\.gemini\\antigravity\\scratch\\hiretrack-ai\\.archify\\architecture-overview-20261103-163000\\candidate.json",
+    "sha256": "c43df53efa98e0f796466125e413a9b8af6c6a8f74a339b5aacec95b9cda154d",
+    "bytes": 8044
+  },
+  "artifact": {
+    "path": "C:\\Users\\gsd10\\.gemini\\antigravity\\scratch\\hiretrack-ai\\.archify\\architecture-overview-20261103-163000\\overview.html",
+    "sha256": "92e75c4a1952aee013d4ffbe35678c85f2f2c71220838c4262907b50e13ee277",
+    "bytes": 861106
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\gsd10\\.gemini\\antigravity\\scratch\\hiretrack-ai\\.archify\\architecture-overview-20261103-163000\\review-2\\overview.finalize.json",
+    "summaryReceipt": "C:\\Users\\gsd10\\.gemini\\antigravity\\scratch\\hiretrack-ai\\.archify\\architecture-overview-20261103-163000\\review-2\\overview.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\gsd10\\.gemini\\antigravity\\scratch\\hiretrack-ai\\.archify\\architecture-overview-20261103-163000\\review-2\\overview.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-03T10:34:28.309Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4003,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

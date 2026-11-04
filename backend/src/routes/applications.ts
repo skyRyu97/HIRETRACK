@@ -5,6 +5,7 @@ import { MatchResult } from '../models/MatchResult';
 import { Resume } from '../models/Resume';
 import { User } from '../models/User';
 import { analyzeMatch, computeInputHash } from '../services/matcher';
+import { extractJobWithAI } from '../services/extractor';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -331,6 +332,9 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response): Promise<
       return;
     }
 
+    // Cascade delete associated match results
+    await MatchResult.deleteMany({ applicationId: req.params.id, userId });
+
     res.status(200).json({ message: 'Application deleted successfully' });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to delete application' });
@@ -458,6 +462,24 @@ router.get('/:id/matches', async (req: AuthenticatedRequest, res: Response): Pro
     res.status(200).json(matches);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to retrieve match history' });
+  }
+});
+
+// POST /api/applications/extract-job - Universal AI Fallback Extractor (Gemini Flash)
+router.post('/extract-job', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { rawText, url } = req.body;
+
+    if (!rawText || typeof rawText !== 'string' || rawText.trim().length < 15) {
+      res.status(400).json({ error: 'Text content is too short for job extraction (minimum 15 characters)' });
+      return;
+    }
+
+    const extracted = await extractJobWithAI(rawText, url);
+    res.status(200).json(extracted);
+  } catch (err: any) {
+    console.error('Job extraction error:', err);
+    res.status(500).json({ error: err.message || 'Failed to extract job details' });
   }
 });
 
