@@ -11,12 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger HireTrack Reminder Webhook
+        env:
+          PROD_URL: ${{ secrets.PRODUCTION_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          echo "Triggering HireTrack daily reminders..."
-          API_URL="${{ secrets.PRODUCTION_API_URL || 'https://hiretrack-api.onrender.com' }}/api/internal/reminders"
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL" \
+          if [ -z "$PROD_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice ::PRODUCTION_API_URL or CRON_SECRET is not set in GitHub Secrets. Skipping scheduled reminder check until production backend is deployed and configured."
+            exit 0
+          fi
+
+          echo "Triggering HireTrack daily reminders at $PROD_URL..."
+          API_URL="${PROD_URL%/}/api/internal/reminders"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" --retry 2 --max-time 60 -X POST "$API_URL" \
             -H "Content-Type: application/json" \
-            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}")
+            -H "x-cron-secret: $CRON_SECRET")
           
           HTTP_BODY=$(echo "$RESPONSE" | sed '$d')
           HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
