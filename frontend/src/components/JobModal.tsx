@@ -245,7 +245,7 @@ export const JobModal: React.FC<JobModalProps> = ({
             </div>
             <textarea
               rows={4}
-              placeholder="Paste full job description here. In Phase 4, HireTrack AI will compare your resume against this text to highlight missing keywords and calculate match scores."
+              placeholder="Paste full job description here. HireTrack AI will compare your resume against this text to highlight missing keywords and calculate match scores."
               value={jdText}
               onChange={(e) => setJdText(e.target.value)}
               className="w-full bg-slate-950/90 border border-slate-800 rounded-lg p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono"

@@ -9,6 +9,7 @@ import {
   Award,
   CheckCircle2,
   Clock,
+  Sparkles,
   Bookmark,
   ExternalLink,
   Copy,
@@ -84,11 +85,8 @@ export const AnalyticsPage: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2.5">
-              <span>Application Intelligence & Velocity</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                Phase 5 Active
-              </span>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-100">
+              Application Intelligence &amp; Velocity
             </h1>
             <p className="text-sm text-slate-400 mt-1">
               Real-time pipeline metrics, stage conversion rates, and automated reminder status.

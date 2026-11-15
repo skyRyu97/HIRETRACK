@@ -79,15 +79,10 @@ export const ResumesPage: React.FC = () => {
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-800/80">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                Phase 3 Active
-              </span>
-              <span className="text-xs text-slate-500">Multi-Resume Management</span>
-            </div>
+            <span className="text-xs text-slate-500 block mb-1">Multi-Resume Management</span>
             <h1 className="text-2xl font-extrabold text-white">Resume Vault</h1>
             <p className="text-xs text-slate-400 mt-1">
-              Upload PDF resumes to extract clean text. In Phase 4, the Gemini AI matcher compares these against job descriptions.
+              Upload PDF resumes to extract clean text so the Gemini AI matcher can compare them against job descriptions.
             </p>
           </div>
 
@@ -123,7 +118,7 @@ export const ResumesPage: React.FC = () => {
             </div>
             <h3 className="text-sm font-bold text-slate-200">No Resumes in Vault</h3>
             <p className="text-xs text-slate-400 max-w-sm mt-1 mb-6">
-              Upload your primary resume as a PDF or paste text manually to prepare for intelligent AI matching in Phase 4.
+              Upload your primary resume as a PDF or paste text manually for AI matching against job descriptions.
             </p>
             <button
               onClick={() => setIsUploadOpen(true)}
@@ -146,7 +141,7 @@ export const ResumesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Phase 4 AI Teaser Banner */}
+        {/* AI Matcher Info Banner */}
         <div className="mt-12 p-5 rounded-2xl bg-gradient-to-r from-blue-950/30 via-indigo-950/30 to-purple-950/30 border border-indigo-800/40 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
@@ -154,10 +149,10 @@ export const ResumesPage: React.FC = () => {
             </div>
             <div>
               <h4 className="text-xs font-bold text-indigo-200">
-                Ready for Phase 4: Gemini AI Resume-to-JD Matcher
+                Gemini AI Resume-to-JD Matcher
               </h4>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Every resume parsed in Phase 3 is indexed and ready to be matched against any job card on your Kanban board.
+                Every resume in your vault is indexed and ready to be matched against any job card on your Kanban board.
               </p>
             </div>
           </div>

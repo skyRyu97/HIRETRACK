@@ -21,12 +21,6 @@ export const DashboardPage: React.FC = () => {
               Drag cards to update their status. Changes and timeline transitions are saved in real-time.
             </p>
           </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-xs px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
-              Phase 2 Active: Kanban Core
-            </span>
-          </div>
         </div>
 
         {/* Live Kanban Board */}

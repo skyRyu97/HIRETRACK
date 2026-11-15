@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { IApplication } from '../types/application';
 import { IResume } from '../types/resume';
 import { IMatchResult } from '../types/match';
@@ -27,6 +28,7 @@ interface JobDrawerProps {
 
 export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) => {
   const [resumes, setResumes] = useState<IResume[]>([]);
+  const [resumesLoading, setResumesLoading] = useState(false);
   const [selectedResumeId, setSelectedResumeId] = useState<string>('');
   const [matchResult, setMatchResult] = useState<IMatchResult | null>(null);
   const [isMatching, setIsMatching] = useState(false);
@@ -38,6 +40,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
     // Reset drawer state on job switch
     setMatchResult(null);
     setMatchError(null);
+    setResumesLoading(true);
 
     // 1. Fetch resumes
     fetchResumes()
@@ -45,9 +48,16 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
         setResumes(data);
         if (data.length > 0) {
           setSelectedResumeId(data[0]._id);
+        } else {
+          setSelectedResumeId('');
         }
       })
-      .catch(() => {});
+      .catch((err: any) => {
+        setMatchError(err.response?.data?.error || 'Could not load resumes from your Vault.');
+      })
+      .finally(() => {
+        setResumesLoading(false);
+      });
 
     // 2. Fetch past match history for this job
     fetchMatchesForApplication(job._id)
@@ -174,20 +184,14 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
 
             {/* AI Matcher Section */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 border border-indigo-800/40 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-indigo-200">Gemini AI Resume Matcher</h3>
-                    <span className="text-[10px] text-slate-400">Structured JD vs. Resume Engine</span>
-                  </div>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4" />
                 </div>
-
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Phase 4 Active
-                </span>
+                <div>
+                  <h3 className="text-xs font-bold text-indigo-200">Gemini AI Resume Matcher</h3>
+                  <span className="text-[10px] text-slate-400">Structured JD vs. Resume Engine</span>
+                </div>
               </div>
 
               {/* Controls bar */}
@@ -229,6 +233,22 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
                   )}
                 </button>
               </div>
+
+              {!resumesLoading && resumes.length === 0 && !matchError && (
+                <p className="text-[11px] text-amber-400/90 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    <span>Upload or paste a resume in Resume Vault first to run AI Match Analysis.</span>
+                  </span>
+                  <Link
+                    to="/resumes"
+                    onClick={onClose}
+                    className="shrink-0 font-semibold text-indigo-300 hover:text-indigo-200 underline"
+                  >
+                    Open Vault →
+                  </Link>
+                </p>
+              )}
 
               {jdLength === 0 ? (
                 <p className="text-[11px] text-amber-400/90 flex items-center gap-1">
