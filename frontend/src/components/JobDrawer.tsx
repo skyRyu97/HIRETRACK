@@ -124,7 +124,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
                 >
                   {statusDisplay[job.status]?.label || job.status}
                 </span>
-                {job.jobUrl && (
+                {job.jobUrl && /^https?:\/\//i.test(job.jobUrl) && (
                   <a
                     href={job.jobUrl}
                     target="_blank"

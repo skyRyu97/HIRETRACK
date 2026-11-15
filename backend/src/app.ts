@@ -15,24 +15,33 @@ const app = express();
 // Trust reverse proxy (Render, Vercel, Railway, Cloudflare) for accurate IP resolution in cookies and rate limiters
 app.set('trust proxy', 1);
 
-const clientOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, extension requests)
+      // Allow non-browser clients (curl, server-to-server, mobile) with no Origin header
       if (!origin) return callback(null, true);
-      if (origin === clientOrigin || origin.endsWith('vercel.app') || origin.includes('localhost')) {
+      if (
+        allowedOrigins.includes(origin) ||
+        (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
+      ) {
         return callback(null, true);
       }
-      return callback(null, true); // Permissive for showcase demo, still credentials protected
+      const err: any = new Error('Not allowed by CORS');
+      err.status = 403;
+      return callback(err);
     },
     credentials: true,
   })
 );
 app.use(helmet());
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Rate Limiters (disabled during unit/integration tests)
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -48,16 +57,47 @@ const generalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30, // 30 login/register attempts per 15 min window
+  max: 30, // 30 login/refresh/demo attempts per 15 min window
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many authentication attempts. Please try again in 15 minutes.' },
   skip: () => isTestEnv,
 });
 
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10, // Limit account creation per IP to prevent throwaway quota abuse
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many accounts created from this IP. Please try again later.' },
+  skip: () => isTestEnv,
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30, // Per-IP cap on AI endpoints in addition to per-user daily quota
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many AI requests from this IP. Please try again later.' },
+  skip: () => isTestEnv,
+});
+
 app.use('/api', generalLimiter);
 app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/register', registerLimiter);
+app.use('/api/auth/refresh', authLimiter);
+app.use('/api/auth/demo', authLimiter);
+app.use('/api/applications/:id/match', aiLimiter);
+app.use('/api/applications/extract-job', aiLimiter);
+
+// Reject cross-site cookie-authenticated auth posts that omit an Origin header
+app.use(['/api/auth/refresh', '/api/auth/logout'], (req, res, next) => {
+  if (req.headers['sec-fetch-site'] === 'cross-site' && !req.headers.origin) {
+    res.status(403).json({ error: 'Cross-site request blocked' });
+    return;
+  }
+  next();
+});
 
 // Health check endpoint
 app.get('/api/health', async (_req, res) => {

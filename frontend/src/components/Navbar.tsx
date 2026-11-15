@@ -24,7 +24,7 @@ export const Navbar: React.FC = () => {
 
   if (!user) return null;
 
-  const isDemo = user.email.includes('demo');
+  const isDemo = user.email.toLowerCase() === 'demo.reviewer@hiretrack.dev';
 
   const handleCopyClipperToken = () => {
     const token = accessToken || '';

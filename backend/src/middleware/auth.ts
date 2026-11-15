@@ -1,5 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { verifyAccessToken, TokenPayload } from '../utils/jwt';
+
+export const DEMO_USER_EMAIL = 'demo.reviewer@hiretrack.dev';
+
+export function isDemoUser(email?: string): boolean {
+  return email?.toLowerCase() === DEMO_USER_EMAIL;
+}
+
+export function requireValidObjectId(id: string | undefined, res: Response, label = 'ID'): boolean {
+  if (!id || !mongoose.isValidObjectId(id)) {
+    res.status(400).json({ error: `Invalid ${label}` });
+    return false;
+  }
+  return true;
+}
 
 export interface AuthenticatedRequest extends Request {
   user?: TokenPayload;

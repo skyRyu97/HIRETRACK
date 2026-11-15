@@ -3,21 +3,21 @@ import crypto from 'crypto';
 
 const MatchSchema = z.object({
   score: z.number().int().min(0).max(100),
-  summary: z.string(),
-  matchedSkills: z.array(z.string()),
+  summary: z.string().max(2000),
+  matchedSkills: z.array(z.string().max(100)).max(50),
   missingSkills: z.array(
     z.object({
-      skill: z.string(),
+      skill: z.string().max(100),
       importance: z.enum(['high', 'medium', 'low']),
     })
-  ),
+  ).max(50),
   suggestions: z.array(
     z.object({
-      original: z.string(),
-      improved: z.string(),
+      original: z.string().max(1000),
+      improved: z.string().max(1000),
     })
   ).max(5),
-  modelUsed: z.string().optional(),
+  modelUsed: z.string().max(100).optional(),
 });
 
 export type MatchAnalysis = z.infer<typeof MatchSchema>;
@@ -121,12 +121,18 @@ function normalizeAiResponse(raw: any, modelName: string): MatchAnalysis {
     : [];
 
   return {
-    score: Math.max(0, Math.min(100, Math.round(Number(score)))),
-    summary: String(summary),
-    matchedSkills: matchedSkills.length > 0 ? matchedSkills : ['Full Stack Development'],
-    missingSkills: missingSkills.length > 0 ? missingSkills : [{ skill: 'Cloud / DevOps', importance: 'medium' }],
-    suggestions,
-    modelUsed: modelName,
+    score: Math.max(0, Math.min(100, Math.round(Number(score) || 0))),
+    summary: String(summary).slice(0, 2000),
+    matchedSkills: (matchedSkills.length > 0 ? matchedSkills : ['Full Stack Development']).slice(0, 50).map((s) => String(s).slice(0, 100)),
+    missingSkills: (missingSkills.length > 0 ? missingSkills : [{ skill: 'Cloud / DevOps', importance: 'medium' as const }]).slice(0, 50).map((m) => ({
+      skill: String(m.skill).slice(0, 100),
+      importance: m.importance,
+    })),
+    suggestions: suggestions.slice(0, 5).map((s) => ({
+      original: String(s.original).slice(0, 1000),
+      improved: String(s.improved).slice(0, 1000),
+    })),
+    modelUsed: modelName.slice(0, 100),
   };
 }
 
@@ -170,9 +176,9 @@ export async function analyzeMatch(resumeText: string, jdText: string): Promise<
     '3. Rewrite actual bullet points from the resume in suggestions to highlight measurable impact and keywords.',
     '4. Never invent skills that have no foundation in the candidate resume.',
     '',
-    `<resume>\n${resumeText.slice(0, 15000)}\n</resume>`,
+    `<resume>\n${resumeText.replace(/<\/?resume>/gi, '').slice(0, 15000)}\n</resume>`,
     '',
-    `<job_description>\n${jdText.slice(0, 15000)}\n</job_description>`,
+    `<job_description>\n${jdText.replace(/<\/?job_description>/gi, '').slice(0, 15000)}\n</job_description>`,
   ].join('\n');
 
   for (const modelName of candidateModels) {
@@ -188,8 +194,9 @@ export async function analyzeMatch(resumeText: string, jdText: string): Promise<
 
       const parsedJson = JSON.parse(response.text || '{}');
       const normalized = normalizeAiResponse(parsedJson, modelName);
-      console.log(`[Gemini Matcher] Successfully analyzed with ${modelName}. Score: ${normalized.score}`);
-      return normalized;
+      const validated = MatchSchema.parse(normalized);
+      console.log(`[Gemini Matcher] Successfully analyzed with ${modelName}. Score: ${validated.score}`);
+      return validated;
     } catch (err: any) {
       console.warn(`[Gemini Matcher] Model ${modelName} failed (${err.message || err}). Trying next candidate...`);
     }

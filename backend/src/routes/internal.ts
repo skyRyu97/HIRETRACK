@@ -1,9 +1,27 @@
 import { Router, Request, Response } from 'express';
+import crypto from 'crypto';
 import { Application } from '../models/Application';
 import { User } from '../models/User';
 import { sendEmail } from '../services/mailer';
+import { isDemoUser } from '../middleware/auth';
 
 const router = Router();
+
+function secretsMatch(provided: unknown, expected: string): boolean {
+  if (typeof provided !== 'string') return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // POST /api/internal/reminders - Cron webhook to trigger follow-up reminder emails
 router.post('/reminders', async (req: Request, res: Response): Promise<void> => {
@@ -18,7 +36,7 @@ router.post('/reminders', async (req: Request, res: Response): Promise<void> => 
     }
 
     const secretToMatch = expectedSecret || 'dev_cron_secret_12345';
-    if (!cronSecretHeader || cronSecretHeader !== secretToMatch) {
+    if (!secretsMatch(cronSecretHeader, secretToMatch)) {
       res.status(401).json({ error: 'Unauthorized: Invalid or missing cron secret' });
       return;
     }
@@ -48,19 +66,20 @@ router.post('/reminders', async (req: Request, res: Response): Promise<void> => 
     });
 
     let sentEmailsCount = 0;
+    const primaryClientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim();
 
     for (const [userId, apps] of Object.entries(userAppsMap)) {
       const user = await User.findById(userId).lean();
-      if (!user || !user.email) continue;
+      if (!user || !user.email || isDemoUser(user.email)) continue;
 
       const itemsHtml = apps
         .map(
           (a) => `
           <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px 8px; font-weight: 600; color: #1e293b;">${a.company}</td>
-            <td style="padding: 12px 8px; color: #475569;">${a.role}</td>
-            <td style="padding: 12px 8px; text-transform: uppercase; font-size: 11px; font-weight: 700; color: #2563eb;">${a.status}</td>
-            <td style="padding: 12px 8px; color: #64748b; font-size: 12px;">${a.notes ? a.notes.slice(0, 100) : 'None'}</td>
+            <td style="padding: 12px 8px; font-weight: 600; color: #1e293b;">${escapeHtml(a.company)}</td>
+            <td style="padding: 12px 8px; color: #475569;">${escapeHtml(a.role)}</td>
+            <td style="padding: 12px 8px; text-transform: uppercase; font-size: 11px; font-weight: 700; color: #2563eb;">${escapeHtml(a.status)}</td>
+            <td style="padding: 12px 8px; color: #64748b; font-size: 12px;">${a.notes ? escapeHtml(a.notes.slice(0, 100)) : 'None'}</td>
           </tr>`
         )
         .join('');
@@ -69,7 +88,7 @@ router.post('/reminders', async (req: Request, res: Response): Promise<void> => 
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
           <h2 style="color: #0f172a; margin-top: 0;">🎯 HireTrack AI: Follow-up Digest</h2>
           <p style="color: #475569; font-size: 14px; line-height: 1.5;">
-            Hi ${user.name}, you have <strong>${apps.length} job application(s)</strong> flagged for follow-up today. Reaching out proactively increases your interview conversion rate!
+            Hi ${escapeHtml(user.name)}, you have <strong>${apps.length} job application(s)</strong> flagged for follow-up today. Reaching out proactively increases your interview conversion rate!
           </p>
           <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
             <thead>
@@ -85,18 +104,25 @@ router.post('/reminders', async (req: Request, res: Response): Promise<void> => 
             </tbody>
           </table>
           <p style="margin-top: 24px;">
-            <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/board" style="display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600;">Open HireTrack Pipeline →</a>
+            <a href="${primaryClientUrl}/board" style="display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600;">Open HireTrack Pipeline →</a>
           </p>
         </div>
       `;
 
-      await sendEmail({
+      const delivery = await sendEmail({
         to: user.email,
         subject: `⏰ [HireTrack AI] Follow-up reminder: ${apps.length} applications pending action`,
         html: emailHtml,
       });
 
-      sentEmailsCount++;
+      if (delivery.success) {
+        // Clear followUpAt once notified so a single scheduled reminder does not repeat on every cron tick
+        await Application.updateMany(
+          { _id: { $in: apps.map((a) => a._id) } },
+          { $unset: { followUpAt: 1 } }
+        );
+        sentEmailsCount++;
+      }
     }
 
     res.status(200).json({

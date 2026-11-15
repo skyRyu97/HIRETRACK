@@ -6,25 +6,42 @@ import { Resume } from '../models/Resume';
 import { User } from '../models/User';
 import { analyzeMatch, computeInputHash } from '../services/matcher';
 import { extractJobWithAI } from '../services/extractor';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, AuthenticatedRequest, isDemoUser, requireValidObjectId } from '../middleware/auth';
 
 const router = Router();
 
 // Protect all routes in this router with requireAuth
 router.use(requireAuth);
 
+const httpUrlSchema = z
+  .string()
+  .url('Invalid URL')
+  .max(2048, 'URL must not exceed 2,048 characters')
+  .refine((u) => /^https?:\/\//i.test(u), 'Job URL must start with http:// or https://')
+  .optional()
+  .or(z.literal(''));
+
 const applicationInputSchema = z.object({
-  company: z.string().min(1, 'Company name is required'),
-  role: z.string().min(1, 'Role / Title is required'),
-  jobUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
-  sourcePortal: z.string().optional(),
-  location: z.string().optional(),
-  salary: z.string().optional(),
+  company: z.string().trim().min(1, 'Company name is required').max(150, 'Company name must not exceed 150 characters'),
+  role: z.string().trim().min(1, 'Role / Title is required').max(150, 'Role must not exceed 150 characters'),
+  jobUrl: httpUrlSchema,
+  sourcePortal: z.string().max(100).optional(),
+  location: z.string().max(150).optional(),
+  salary: z.string().max(100).optional(),
   jdText: z.string().max(20000).optional(),
   status: z.enum(APPLICATION_STATUSES as [ApplicationStatus, ...ApplicationStatus[]]).default('wishlist'),
   notes: z.string().max(5000).optional(),
   followUpAt: z.string().datetime().optional().nullable(),
   appliedAt: z.string().datetime().optional().nullable(),
+});
+
+const extractJobSchema = z.object({
+  rawText: z
+    .string()
+    .trim()
+    .min(15, 'Text content is too short for job extraction (minimum 15 characters)')
+    .max(20000, 'Text content must not exceed 20,000 characters'),
+  url: httpUrlSchema,
 });
 
 function deriveSourcePortal(url?: string): string {
@@ -155,7 +172,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response): Promise<void> 
     const userId = req.user!.userId;
 
     // Check if demo user needs initial seed
-    if (req.user!.email.includes('demo')) {
+    if (isDemoUser(req.user!.email)) {
       await seedDemoJobsIfEmpty(userId);
     }
 
@@ -178,7 +195,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void>
     const parseResult = applicationInputSchema.safeParse(req.body);
 
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors[0].message });
+      res.status(400).json({ error: parseResult.error.issues[0].message });
       return;
     }
 
@@ -227,6 +244,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void>
 // GET /api/applications/:id - Get specific job details
 router.get('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'application ID')) return;
     const userId = req.user!.userId;
     const application = await Application.findOne({
       _id: req.params.id,
@@ -247,11 +265,12 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response): Promise<voi
 // PUT /api/applications/:id - Update job application
 router.put('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'application ID')) return;
     const userId = req.user!.userId;
     const parseResult = applicationInputSchema.safeParse(req.body);
 
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors[0].message });
+      res.status(400).json({ error: parseResult.error.issues[0].message });
       return;
     }
 
@@ -300,11 +319,12 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response): Promise<voi
 // PATCH /api/applications/:id/move - Move card between columns or reorder (Drag-and-Drop)
 router.patch('/:id/move', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'application ID')) return;
     const userId = req.user!.userId;
     const parseResult = moveInputSchema.safeParse(req.body);
 
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors[0].message });
+      res.status(400).json({ error: parseResult.error.issues[0].message });
       return;
     }
 
@@ -342,6 +362,7 @@ router.patch('/:id/move', async (req: AuthenticatedRequest, res: Response): Prom
 // DELETE /api/applications/:id - Delete job application
 router.delete('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'application ID')) return;
     const userId = req.user!.userId;
     const application = await Application.findOneAndDelete({
       _id: req.params.id,
@@ -362,12 +383,58 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response): Promise<
   }
 });
 
+// Shared atomic daily AI quota gate for both match analysis and AI job extraction
+async function consumeAiQuota(userId: string, res: Response): Promise<boolean> {
+  const DAILY_LIMIT = 10;
+  const todayString = new Date().toISOString().split('T')[0];
+
+  // Atomic check-and-increment prevents parallel bursts from bypassing DAILY_LIMIT
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: userId,
+      $or: [
+        { lastAiCallDate: { $ne: todayString } },
+        { lastAiCallDate: todayString, aiCallsToday: { $lt: DAILY_LIMIT } },
+      ],
+    },
+    [
+      {
+        $set: {
+          aiCallsToday: {
+            $cond: [{ $eq: ['$lastAiCallDate', todayString] }, { $add: ['$aiCallsToday', 1] }, 1],
+          },
+          lastAiCallDate: todayString,
+        },
+      },
+    ],
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    const exists = await User.exists({ _id: userId });
+    if (!exists) {
+      res.status(404).json({ error: 'User not found' });
+      return false;
+    }
+    res.status(429).json({
+      error: `Daily AI quota reached (${DAILY_LIMIT} analyses/day). Quota resets tomorrow.`,
+    });
+    return false;
+  }
+
+  return true;
+}
+
 // POST /api/applications/:id/match - Run or fetch cached AI match
 router.post('/:id/match', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'application ID')) return;
     const userId = req.user!.userId;
     const applicationId = req.params.id;
     const { resumeId, forceRefresh } = req.body;
+    if (resumeId !== undefined && resumeId !== '' && !requireValidObjectId(String(resumeId), res, 'resume ID')) {
+      return;
+    }
 
     // 1. Fetch application and ensure JD is present
     const application = await Application.findOne({ _id: applicationId, userId });
@@ -416,33 +483,13 @@ router.post('/:id/match', async (req: AuthenticatedRequest, res: Response): Prom
       await MatchResult.deleteMany({ userId, inputHash });
     }
 
-    // 5. Daily quota check & reset logic
-    const user = await User.findById(userId);
-    if (!user) {
-      res.status(404).json({ error: 'User not found' });
-      return;
-    }
-
-    const todayString = new Date().toISOString().split('T')[0];
-    if (user.lastAiCallDate !== todayString) {
-      user.aiCallsToday = 0;
-      user.lastAiCallDate = todayString;
-    }
-
-    const DAILY_LIMIT = 10;
-    if (user.aiCallsToday >= DAILY_LIMIT) {
-      res.status(429).json({
-        error: `Daily AI quota reached (${DAILY_LIMIT} analyses/day). Quota resets tomorrow.`,
-      });
+    // 5. Daily quota check & usage increment
+    if (!(await consumeAiQuota(userId, res))) {
       return;
     }
 
     // 6. Execute AI analysis
     const analysis = await analyzeMatch(resume.extractedText, application.jdText);
-
-    // 7. Update usage quota
-    user.aiCallsToday += 1;
-    await user.save();
 
     // 8. Persist match result
     const matchRecord = new MatchResult({
@@ -466,13 +513,14 @@ router.post('/:id/match', async (req: AuthenticatedRequest, res: Response): Prom
     });
   } catch (err: any) {
     console.error('Match execution error:', err);
-    res.status(500).json({ error: err.message || 'Failed to complete AI match analysis' });
+    res.status(500).json({ error: 'Failed to complete AI match analysis' });
   }
 });
 
 // GET /api/applications/:id/matches - List past matches for this job
 router.get('/:id/matches', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'application ID')) return;
     const userId = req.user!.userId;
     const applicationId = req.params.id;
 
@@ -489,18 +537,23 @@ router.get('/:id/matches', async (req: AuthenticatedRequest, res: Response): Pro
 // POST /api/applications/extract-job - Universal AI Fallback Extractor (Gemini Flash)
 router.post('/extract-job', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const { rawText, url } = req.body;
-
-    if (!rawText || typeof rawText !== 'string' || rawText.trim().length < 15) {
-      res.status(400).json({ error: 'Text content is too short for job extraction (minimum 15 characters)' });
+    const parseResult = extractJobSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({ error: parseResult.error.issues[0].message });
       return;
     }
 
-    const extracted = await extractJobWithAI(rawText, url);
+    const { rawText, url } = parseResult.data;
+
+    if (!(await consumeAiQuota(req.user!.userId, res))) {
+      return;
+    }
+
+    const extracted = await extractJobWithAI(rawText, url || undefined);
     res.status(200).json(extracted);
   } catch (err: any) {
     console.error('Job extraction error:', err);
-    res.status(500).json({ error: err.message || 'Failed to extract job details' });
+    res.status(500).json({ error: 'Failed to extract job details' });
   }
 });
 

@@ -4,7 +4,7 @@ import pdfParse from 'pdf-parse';
 import { z } from 'zod';
 import { Resume } from '../models/Resume';
 import { MatchResult } from '../models/MatchResult';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, AuthenticatedRequest, isDemoUser, requireValidObjectId } from '../middleware/auth';
 
 const router = Router();
 
@@ -27,8 +27,8 @@ const upload = multer({
 });
 
 const rawResumeSchema = z.object({
-  label: z.string().min(2, 'Label must be at least 2 characters'),
-  text: z.string().min(50, 'Resume text must contain at least 50 characters'),
+  label: z.string().trim().min(2, 'Label must be at least 2 characters').max(120, 'Label must be at most 120 characters'),
+  text: z.string().min(50, 'Resume text must contain at least 50 characters').max(30000, 'Resume text must not exceed 30,000 characters'),
 });
 
 // Auto-seed sample resume for Demo Reviewer
@@ -36,9 +36,9 @@ async function seedDemoResumeIfEmpty(userId: string) {
   const count = await Resume.countDocuments({ userId });
   if (count === 0) {
     const demoResumeText = `
-GAGANDEEP SINGH DANDIWAL
-Chandigarh | gagandeep.apply@gmail.com | (+91) 6284451907
-LinkedIn: linkedin.com/in/gagan-dandiwal | GitHub: github.com/skyRyu97
+ALEX RIVERA
+Remote / San Francisco, CA | demo.reviewer@hiretrack.dev | (+1) 555-0142
+LinkedIn: linkedin.com/in/demo-reviewer | GitHub: github.com/demo-reviewer
 
 PROFESSIONAL SUMMARY
 Full-Stack MERN Developer with hands-on experience building scalable web applications with React.js, Node.js, Express, and MongoDB. Strong foundation in RESTful API design, state management, Docker, and AI-assisted workflows. Available for immediate joining.
@@ -76,7 +76,7 @@ EDUCATION
       userId,
       label: 'Fullstack MERN Profile (Default)',
       extractedText: demoResumeText,
-      fileName: 'Gagandeep_Dandiwal_Resume.pdf',
+      fileName: 'Demo_Reviewer_Resume.pdf',
       fileSize: 104850,
       wordCount: demoResumeText.split(/\s+/).filter(Boolean).length,
     });
@@ -88,7 +88,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response): Promise<void> 
   try {
     const userId = req.user!.userId;
 
-    if (req.user!.email.includes('demo')) {
+    if (isDemoUser(req.user!.email)) {
       await seedDemoResumeIfEmpty(userId);
     }
 
@@ -106,6 +106,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response): Promise<void> 
 // GET /api/resumes/:id - Get single resume with full extracted text
 router.get('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'resume ID')) return;
     const userId = req.user!.userId;
     const resume = await Resume.findOne({ _id: req.params.id, userId });
 
@@ -137,6 +138,10 @@ router.post(
       let parsed;
       try {
         const buffer = Buffer.isBuffer(req.file.buffer) ? req.file.buffer : Buffer.from(req.file.buffer);
+        if (buffer.subarray(0, 5).toString('ascii') !== '%PDF-') {
+          res.status(400).json({ error: 'Invalid file type. Only valid PDF documents are allowed.' });
+          return;
+        }
         parsed = await pdfParse(buffer);
       } catch (parseErr: any) {
         console.error('PDF Parse Error:', parseErr);
@@ -192,7 +197,7 @@ router.post(
       });
     } catch (err: any) {
       console.error('Upload resume error:', err);
-      res.status(500).json({ error: err.message || 'Failed to upload and parse resume' });
+      res.status(500).json({ error: 'Failed to upload and parse resume' });
     }
   }
 );
@@ -204,7 +209,7 @@ router.post('/raw', async (req: AuthenticatedRequest, res: Response): Promise<vo
     const parseResult = rawResumeSchema.safeParse(req.body);
 
     if (!parseResult.success) {
-      res.status(400).json({ error: parseResult.error.errors[0].message });
+      res.status(400).json({ error: parseResult.error.issues[0].message });
       return;
     }
 
@@ -232,6 +237,7 @@ router.post('/raw', async (req: AuthenticatedRequest, res: Response): Promise<vo
 // DELETE /api/resumes/:id - Delete a resume
 router.delete('/:id', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!requireValidObjectId(req.params.id, res, 'resume ID')) return;
     const userId = req.user!.userId;
     const resume = await Resume.findOneAndDelete({ _id: req.params.id, userId });
 
