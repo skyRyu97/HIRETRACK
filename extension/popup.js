@@ -46,58 +46,76 @@ document.addEventListener('DOMContentLoaded', async () => {
     jdChars.textContent = jdField.value.length;
   });
 
-  async function fetchFreshToken(backend = 'http://localhost:5000') {
+  function findHiretrackTabs() {
     return new Promise((resolve) => {
-      chrome.tabs.query({}, async (tabs) => {
-        const hiretrackTab = tabs.find(
+      chrome.tabs.query({}, (tabs) => {
+        const matches = (tabs || []).filter(
           (t) =>
+            t.id &&
             t.url &&
             (t.url.includes('localhost:5173') ||
               t.url.includes('hiretrack') ||
               (t.title && t.title.toLowerCase().includes('hiretrack')))
         );
-
-        if (hiretrackTab && hiretrackTab.id) {
-          try {
-            const results = await chrome.scripting.executeScript({
-              target: { tabId: hiretrackTab.id },
-              func: () =>
-                localStorage.getItem('hiretrack_token') ||
-                localStorage.getItem('accessToken') ||
-                window.__HIRETRACK_TOKEN__ ||
-                null,
-            });
-            const tabToken = results && results[0] && results[0].result ? results[0].result : null;
-            if (tabToken) {
-              resolve(tabToken);
-              return;
-            }
-          } catch {
-            // ignore script injection errors
-          }
-        }
-
-        // Fallback: try refresh cookie against backend
-        try {
-          const resp = await fetch(`${backend}/api/auth/refresh`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            if (data.accessToken) {
-              resolve(data.accessToken);
-              return;
-            }
-          }
-        } catch {
-          // ignore network errors
-        }
-
-        resolve(null);
+        resolve(matches);
       });
     });
+  }
+
+  async function notifyHiretrackTabs() {
+    const tabs = await findHiretrackTabs();
+    await Promise.all(
+      tabs.map((tab) =>
+        chrome.scripting
+          .executeScript({
+            target: { tabId: tab.id },
+            func: () => window.postMessage({ type: 'HIRETRACK_JOB_ADDED' }, window.location.origin),
+          })
+          .catch(() => {})
+      )
+    );
+  }
+
+  async function fetchFreshToken(backend = 'http://localhost:5000') {
+    const [hiretrackTab] = await findHiretrackTabs();
+
+    if (hiretrackTab && hiretrackTab.id) {
+      try {
+        const results = await chrome.scripting.executeScript({
+          target: { tabId: hiretrackTab.id },
+          func: () =>
+            localStorage.getItem('hiretrack_token') ||
+            localStorage.getItem('accessToken') ||
+            window.__HIRETRACK_TOKEN__ ||
+            null,
+        });
+        const tabToken = results && results[0] && results[0].result ? results[0].result : null;
+        if (tabToken) {
+          return tabToken;
+        }
+      } catch {
+        // ignore script injection errors
+      }
+    }
+
+    // Fallback: try refresh cookie against backend
+    try {
+      const resp = await fetch(`${backend}/api/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.accessToken) {
+          return data.accessToken;
+        }
+      }
+    } catch {
+      // ignore network errors
+    }
+
+    return null;
   }
 
   async function tryAutoConnect(silent = false) {
@@ -346,6 +364,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           throw new Error(errData.error || `HTTP ${response.status}`);
         }
 
+        await notifyHiretrackTabs();
         showStatus(`🎯 Saved to Wishlist: ${company} - ${role}`, 'success');
         setTimeout(() => window.close(), 2000);
       } catch (err) {

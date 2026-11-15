@@ -40,20 +40,42 @@ export const KanbanBoard: React.FC = () => {
   const [selectedJobForDrawer, setSelectedJobForDrawer] =
     useState<IApplication | null>(null);
 
-  const loadJobs = async () => {
-    setLoading(true);
+  const loadJobs = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const data = await fetchApplications();
       setApplications(data);
     } catch (err: any) {
-      setErrorToast('Failed to load applications. Check backend connection.');
+      if (!silent) {
+        setErrorToast('Failed to load applications. Check backend connection.');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadJobs();
+
+    const handleRefresh = () => loadJobs(true);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') loadJobs(true);
+    };
+    const handleMessage = (e: MessageEvent) => {
+      if (e.origin === window.location.origin && e.data?.type === 'HIRETRACK_JOB_ADDED') {
+        loadJobs(true);
+      }
+    };
+
+    window.addEventListener('focus', handleRefresh);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.removeEventListener('focus', handleRefresh);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
 
   // Quick summary numbers

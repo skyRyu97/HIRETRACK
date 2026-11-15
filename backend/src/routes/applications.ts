@@ -201,15 +201,15 @@ router.post('/', async (req: AuthenticatedRequest, res: Response): Promise<void>
 
     const data = parseResult.data;
 
-    // Calculate position: put new card at bottom of column
-    const highestInCol = await Application.findOne({
+    // Calculate position: place newly added cards at the top of the column
+    const lowestInCol = await Application.findOne({
       userId,
       status: data.status,
     })
-      .sort({ position: -1 })
+      .sort({ position: 1 })
       .select('position');
 
-    const position = highestInCol ? highestInCol.position + 1000 : 1000;
+    const position = lowestInCol ? lowestInCol.position - 1000 : 1000;
 
     const application = new Application({
       userId,

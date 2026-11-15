@@ -55,6 +55,16 @@ describe('Security Controls Verification', () => {
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
 
+  it('allows browser extension origin in non-production environments', async () => {
+    const extOrigin = 'chrome-extension://abcdefghijklmnopqrstuvwxyzabcdef';
+    const res = await request(app)
+      .get('/api/health')
+      .set('Origin', extOrigin);
+
+    expect(res.status).toBe(200);
+    expect(res.headers['access-control-allow-origin']).toBe(extOrigin);
+  });
+
   it('rejects javascript: URI in jobUrl (400)', async () => {
     const res = await request(app)
       .post('/api/applications')

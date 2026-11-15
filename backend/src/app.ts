@@ -15,20 +15,24 @@ const app = express();
 // Trust reverse proxy (Render, Vercel, Railway, Cloudflare) for accurate IP resolution in cookies and rate limiters
 app.set('trust proxy', 1);
 
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
-  .split(',')
+const allowedOrigins = [
+  ...(process.env.CLIENT_URL || 'http://localhost:5173').split(','),
+  ...(process.env.EXTENSION_ORIGIN || '').split(','),
+]
   .map((o) => o.trim())
   .filter(Boolean);
+
+const isDevExtensionOrigin = (origin: string) =>
+  process.env.NODE_ENV !== 'production' &&
+  (/^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?)$/i.test(origin) ||
+    /^(chrome-extension|extension|moz-extension):\/\/[a-z0-9-]+$/i.test(origin));
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow non-browser clients (curl, server-to-server, mobile) with no Origin header
       if (!origin) return callback(null, true);
-      if (
-        allowedOrigins.includes(origin) ||
-        (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
-      ) {
+      if (allowedOrigins.includes(origin) || isDevExtensionOrigin(origin)) {
         return callback(null, true);
       }
       const err: any = new Error('Not allowed by CORS');
