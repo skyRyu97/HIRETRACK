@@ -36,8 +36,8 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { to: '/board', label: 'Job Board', icon: LayoutDashboard },
-    { to: '/resumes', label: 'Resume Vault', icon: FileText },
+    { to: '/board', label: 'Board', icon: LayoutDashboard },
+    { to: '/resumes', label: 'Resumes', icon: FileText },
     { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
@@ -97,60 +97,57 @@ export const Navbar: React.FC = () => {
           <button
             onClick={handleCopyClipperToken}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold transition-colors"
-            title="Click to copy your authorization token for the Job Clipper extension"
+            title="Copy authorization token for the Job Clipper extension"
           >
             {copiedToken ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-400">Token Copied!</span>
+                <span className="text-emerald-400">Copied</span>
               </>
             ) : (
               <>
                 <Key className="w-3.5 h-3.5 text-blue-400" />
-                <span className="hidden sm:inline">Clipper Token</span>
+                <span className="hidden lg:inline">Token</span>
               </>
             )}
           </button>
 
-          {/* 3-Way Theme Switcher: Dark, Middle-Gray, Light */}
+          {/* 3-Way Theme Switcher */}
           <div className="flex items-center p-0.5 rounded-xl bg-slate-800/80 border border-slate-700/60 gap-0.5">
             <button
               onClick={() => setTheme('dark')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+              className={`p-1.5 rounded-lg transition-all ${
                 theme === 'dark'
                   ? 'bg-slate-900 text-blue-400 shadow-sm border border-slate-700'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Midnight Dark"
+              title="Dark Theme"
             >
               <Moon className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Dark</span>
             </button>
 
             <button
               onClick={() => setTheme('gray')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+              className={`p-1.5 rounded-lg transition-all ${
                 theme === 'gray'
                   ? 'bg-[#414D65] text-[#F4F6FC] shadow-sm border border-[#596780]'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Muted Navy Theme (#343F56)"
+              title="Navy Theme"
             >
               <Contrast className="w-3.5 h-3.5 text-blue-300" />
-              <span className="hidden md:inline">Navy</span>
             </button>
 
             <button
               onClick={() => setTheme('light')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+              className={`p-1.5 rounded-lg transition-all ${
                 theme === 'light'
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-300'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Crisp Light Mode"
+              title="Light Theme"
             >
               <Sun className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden md:inline">Light</span>
             </button>
           </div>
 

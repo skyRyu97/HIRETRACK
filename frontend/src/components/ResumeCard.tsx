@@ -1,6 +1,6 @@
 import React from 'react';
 import { IResume } from '../types/resume';
-import { FileText, Calendar, Trash2, Eye, ShieldCheck } from 'lucide-react';
+import { FileText, Calendar, Trash2, Eye } from 'lucide-react';
 
 interface ResumeCardProps {
   resume: IResume;
@@ -42,29 +42,17 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onPreview, onDel
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 my-3 p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs">
-          <div>
-            <span className="text-slate-500 block text-[10px]">WORD COUNT</span>
-            <span className="font-semibold text-slate-200 font-mono">{resume.wordCount} words</span>
-          </div>
-          <div>
-            <span className="text-slate-500 block text-[10px]">FILE SIZE</span>
-            <span className="font-semibold text-slate-200 font-mono">
-              {resume.fileSize ? `${(resume.fileSize / 1024).toFixed(1)} KB` : 'N/A'}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-4">
-          <Calendar className="w-3.5 h-3.5 text-slate-500" />
-          <span>Uploaded {formatDate(resume.uploadedAt || resume.createdAt)}</span>
+        <div className="flex items-center gap-3 my-3 text-xs text-slate-400 font-mono">
+          <span>{resume.wordCount} words</span>
+          <span>·</span>
+          <span>{resume.fileSize ? `${(resume.fileSize / 1024).toFixed(1)} KB` : 'Text'}</span>
         </div>
       </div>
 
       <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          Ready for AI Matching
+        <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
+          <Calendar className="w-3.5 h-3.5 text-slate-500" />
+          {formatDate(resume.uploadedAt || resume.createdAt)}
         </span>
 
         <button

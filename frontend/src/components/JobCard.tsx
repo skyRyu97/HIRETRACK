@@ -153,12 +153,6 @@ export const JobCard: React.FC<JobCardProps> = ({
           <Calendar className="w-3 h-3" />
           {job.appliedAt ? `Applied ${formatDate(job.appliedAt)}` : `Added ${formatDate(job.createdAt)}`}
         </span>
-
-        {job.jdText && (
-          <span className="text-[10px] font-medium text-indigo-400/80 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
-            JD Attached
-          </span>
-        )}
       </div>
     </div>
   );

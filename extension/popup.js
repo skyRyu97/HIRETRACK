@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             target: { tabId: tab.id },
             func: () => window.postMessage({ type: 'HIRETRACK_JOB_ADDED' }, window.location.origin),
           })
-          .catch(() => {})
+          .catch(() => { })
       )
     );
   }
@@ -201,8 +201,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (portalLabel) {
       portalLabel.textContent = currentPortal;
     }
-    if (d?.layer && layerTag) {
-      layerTag.textContent = d.layer;
+    if (layerTag) {
+      layerTag.textContent = 'Job Clipper';
     }
 
     let role = d?.role || (fallbackTitle ? fallbackTitle.split(/[-|–•]/)[0].trim() : '') || 'Software Engineer';
@@ -254,16 +254,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 jdField.value = aiData.jdText;
                 jdChars.textContent = aiData.jdText.length;
               }
-              if (layerTag) layerTag.textContent = '✨ L4:Gemini AI';
+              if (layerTag) layerTag.textContent = 'AI Extracted';
             } else {
-              if (layerTag) layerTag.textContent = d?.layer || 'L4:Local';
+              if (layerTag) layerTag.textContent = 'Job Clipper';
             }
           } catch {
             clearTimeout(timeoutId);
-            if (layerTag) layerTag.textContent = d?.layer || 'L4:Local';
+            if (layerTag) layerTag.textContent = 'Job Clipper';
           }
         } else {
-          if (layerTag) layerTag.textContent = d?.layer || 'L4:Local';
+          if (layerTag) layerTag.textContent = 'Job Clipper';
         }
       });
     }

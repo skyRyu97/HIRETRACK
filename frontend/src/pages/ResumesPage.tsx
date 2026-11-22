@@ -5,7 +5,7 @@ import { fetchResumes, fetchResumeById, deleteResume } from '../api/resumes';
 import { ResumeCard } from '../components/ResumeCard';
 import { ResumeUploadModal } from '../components/ResumeUploadModal';
 import { ResumePreviewModal } from '../components/ResumePreviewModal';
-import { Plus, FileText, AlertCircle, RefreshCw, Sparkles } from 'lucide-react';
+import { Plus, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 
 export const ResumesPage: React.FC = () => {
   const [resumes, setResumes] = useState<IResume[]>([]);
@@ -77,12 +77,11 @@ export const ResumesPage: React.FC = () => {
         )}
 
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-800/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800/80">
           <div>
-            <span className="text-xs text-slate-500 block mb-1">Multi-Resume Management</span>
-            <h1 className="text-2xl font-extrabold text-white">Resume Vault</h1>
+            <h1 className="text-2xl font-bold text-white">Resumes</h1>
             <p className="text-xs text-slate-400 mt-1">
-              Upload PDF resumes to extract clean text so the Gemini AI matcher can compare them against job descriptions.
+              Upload PDF resumes or paste text for AI job matching.
             </p>
           </div>
 
@@ -116,9 +115,9 @@ export const ResumesPage: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4">
               <FileText className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-200">No Resumes in Vault</h3>
+            <h3 className="text-sm font-bold text-slate-200">No Resumes Yet</h3>
             <p className="text-xs text-slate-400 max-w-sm mt-1 mb-6">
-              Upload your primary resume as a PDF or paste text manually for AI matching against job descriptions.
+              Upload a PDF resume or paste text to use with AI job matching.
             </p>
             <button
               onClick={() => setIsUploadOpen(true)}
@@ -140,23 +139,6 @@ export const ResumesPage: React.FC = () => {
             ))}
           </div>
         )}
-
-        {/* AI Matcher Info Banner */}
-        <div className="mt-12 p-5 rounded-2xl bg-gradient-to-r from-blue-950/30 via-indigo-950/30 to-purple-950/30 border border-indigo-800/40 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-indigo-200">
-                Gemini AI Resume-to-JD Matcher
-              </h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Every resume in your vault is indexed and ready to be matched against any job card on your Kanban board.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Upload Modal */}
         <ResumeUploadModal

@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   Sparkles,
-  Zap,
   Copy,
   Check,
   ArrowRight,
@@ -43,34 +42,10 @@ export const MatchResultsView: React.FC<MatchResultsViewProps> = ({ match }) => 
 
         <div className="flex-1 text-center sm:text-left">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
-            <span className="text-xs font-bold text-slate-200">Executive Match Analysis</span>
-            {match.modelUsed && (
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                  match.modelUsed.includes('heuristic')
-                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                    : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
-                }`}
-              >
-                {match.modelUsed.includes('heuristic') ? (
-                  <span>⚡ Heuristic Fallback</span>
-                ) : (
-                  <>
-                    <Sparkles className="w-3 h-3 text-indigo-400" />
-                    <span>Gemini ({match.modelUsed})</span>
-                  </>
-                )}
-              </span>
-            )}
-            {match.cached ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <Zap className="w-3 h-3" />
-                Cached
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                <Sparkles className="w-3 h-3" />
-                Fresh
+            <span className="text-xs font-bold text-slate-200">Match Summary</span>
+            {match.modelUsed?.includes('heuristic') && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-amber-500/10 text-amber-300 border-amber-500/20">
+                Heuristic Fallback
               </span>
             )}
           </div>
@@ -137,15 +112,10 @@ export const MatchResultsView: React.FC<MatchResultsViewProps> = ({ match }) => 
       {/* Suggested Bullet Point Improvements */}
       {match.suggestions && match.suggestions.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              Targeted Resume Bullet Optimizations
-            </h4>
-            <span className="text-[10px] text-slate-500 font-medium">
-              Copy & paste into your resume
-            </span>
-          </div>
+          <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            Suggested Resume Edits
+          </h4>
 
           <div className="space-y-2.5">
             {match.suggestions.map((suggestion, idx) => (

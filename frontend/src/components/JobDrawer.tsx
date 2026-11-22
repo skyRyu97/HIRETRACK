@@ -53,7 +53,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
         }
       })
       .catch((err: any) => {
-        setMatchError(err.response?.data?.error || 'Could not load resumes from your Vault.');
+        setMatchError(err.response?.data?.error || 'Could not load resumes.');
       })
       .finally(() => {
         setResumesLoading(false);
@@ -78,7 +78,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
     }
 
     if (resumes.length === 0) {
-      setMatchError('No resume found. Please add a resume in the Resume Vault first.');
+      setMatchError('No resume found. Please add a resume on the Resumes page first.');
       return;
     }
 
@@ -188,10 +188,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
                 <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
                   <Sparkles className="w-4 h-4" />
                 </div>
-                <div>
-                  <h3 className="text-xs font-bold text-indigo-200">Gemini AI Resume Matcher</h3>
-                  <span className="text-[10px] text-slate-400">Structured JD vs. Resume Engine</span>
-                </div>
+                <h3 className="text-xs font-bold text-indigo-200">AI Resume Match</h3>
               </div>
 
               {/* Controls bar */}
@@ -210,7 +207,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
                         </option>
                       ))
                     ) : (
-                      <option value="">No resumes found — add in Vault</option>
+                      <option value="">No resumes found</option>
                     )}
                   </select>
                 </div>
@@ -238,14 +235,14 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
                 <p className="text-[11px] text-amber-400/90 flex items-center justify-between gap-2">
                   <span className="flex items-center gap-1">
                     <AlertCircle className="w-3 h-3 shrink-0" />
-                    <span>Upload or paste a resume in Resume Vault first to run AI Match Analysis.</span>
+                    <span>Add a resume first to run AI match analysis.</span>
                   </span>
                   <Link
                     to="/resumes"
                     onClick={onClose}
                     className="shrink-0 font-semibold text-indigo-300 hover:text-indigo-200 underline"
                   >
-                    Open Vault →
+                    Add Resume →
                   </Link>
                 </p>
               )}
@@ -317,7 +314,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
             <div>
               <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <History className="w-3.5 h-3.5 text-slate-400" />
-                Pipeline Timeline
+                Status History
               </h4>
               <div className="space-y-3 relative before:absolute before:inset-0 before:left-2.5 before:w-0.5 before:bg-slate-800">
                 {job.statusHistory.map((item, idx) => (

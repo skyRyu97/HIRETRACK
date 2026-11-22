@@ -60,34 +60,21 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
-          {/* Quick Demo Access for Reviewers / HR */}
-          <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-950/40 to-indigo-950/40 border border-blue-800/40">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-blue-300 uppercase tracking-wider">
-                Recruiter / Portfolio Reviewer?
-              </span>
-              <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-500/20 text-blue-300">
-                1-CLICK
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mb-3">
-              Skip registration and instantly explore the live board with seeded demo data.
-            </p>
-            <button
-              onClick={handleDemoLogin}
-              disabled={isDemoSubmitting}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/25 transition-all disabled:opacity-50"
-            >
-              {isDemoSubmitting ? (
-                <span>Entering Demo...</span>
-              ) : (
-                <>
-                  <span>Explore as Demo Reviewer</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </div>
+          {/* Quick Demo Access */}
+          <button
+            onClick={handleDemoLogin}
+            disabled={isDemoSubmitting}
+            className="w-full mb-5 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
+          >
+            {isDemoSubmitting ? (
+              <span>Entering Demo...</span>
+            ) : (
+              <>
+                <span>Explore Demo Account</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
 
           <div className="relative flex py-2 items-center mb-6">
             <div className="flex-grow border-t border-slate-800" />

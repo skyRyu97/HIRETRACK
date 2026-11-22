@@ -7,11 +7,9 @@ import {
   TrendingUp,
   Target,
   Award,
-  CheckCircle2,
   Clock,
   Sparkles,
   Bookmark,
-  ExternalLink,
   Copy,
   Check,
   RefreshCw,
@@ -85,11 +83,9 @@ export const AnalyticsPage: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-100">
-              Application Intelligence &amp; Velocity
-            </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Real-time pipeline metrics, stage conversion rates, and automated reminder status.
+            <h1 className="text-2xl font-bold tracking-tight text-slate-100">Analytics</h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Pipeline metrics and stage conversion rates.
             </p>
           </div>
 
@@ -99,7 +95,7 @@ export const AnalyticsPage: React.FC = () => {
             className="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Metrics</span>
+            <span>Refresh</span>
           </button>
         </div>
 
@@ -113,9 +109,9 @@ export const AnalyticsPage: React.FC = () => {
         {/* Top 4 KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Applications */}
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg relative overflow-hidden group">
+          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-400">Total Tracked Jobs</span>
+              <span className="text-xs font-semibold text-slate-400">Total Jobs</span>
               <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
                 <Target className="w-4 h-4" />
               </div>
@@ -123,13 +119,10 @@ export const AnalyticsPage: React.FC = () => {
             <div className="text-3xl font-extrabold text-slate-100">
               {loading ? '...' : data?.totalApplications || 0}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-              <span>Across all 6 Kanban pipeline stages</span>
-            </p>
           </div>
 
           {/* Card 2: Active Interviews */}
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg relative overflow-hidden group">
+          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold text-purple-400">Active Interviews</span>
               <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
@@ -139,15 +132,12 @@ export const AnalyticsPage: React.FC = () => {
             <div className="text-3xl font-extrabold text-purple-300">
               {loading ? '...' : data?.activeInterviews || 0}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-              <span>High priority in-flight opportunities</span>
-            </p>
           </div>
 
           {/* Card 3: Offers Received */}
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg relative overflow-hidden group">
+          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-emerald-400">Offers Secured</span>
+              <span className="text-xs font-semibold text-emerald-400">Offers</span>
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                 <Award className="w-4 h-4" />
               </div>
@@ -155,13 +145,10 @@ export const AnalyticsPage: React.FC = () => {
             <div className="text-3xl font-extrabold text-emerald-400">
               {loading ? '...' : data?.totalOffers || 0}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-              <span>Final stage success stories</span>
-            </p>
           </div>
 
           {/* Card 4: Conversion Rate */}
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg relative overflow-hidden group">
+          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold text-blue-400">Interview Rate</span>
               <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
@@ -171,15 +158,12 @@ export const AnalyticsPage: React.FC = () => {
             <div className="text-3xl font-extrabold text-blue-300">
               {loading ? '...' : `${data?.interviewConversionRate || 0}%`}
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div className="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
               <div
                 className="bg-blue-500 h-full rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, data?.interviewConversionRate || 0)}%` }}
               />
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">
-              Moved from Applied to Interview / Offer
-            </p>
           </div>
         </div>
 
@@ -187,19 +171,9 @@ export const AnalyticsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Velocity Bar Chart (2 cols) */}
           <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-200">
-                  Application Velocity (Last 8 Weeks)
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Weekly submissions pace to maintain pipeline momentum.
-                </p>
-              </div>
-              <span className="text-xs font-semibold text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-lg">
-                Rolling 8-Wk Window
-              </span>
-            </div>
+            <h3 className="text-sm font-bold text-slate-200">
+              Weekly Applications (Last 8 Weeks)
+            </h3>
 
             <div className="h-64 w-full pt-4">
               {data && data.weeklyVelocity.length > 0 ? (
@@ -246,10 +220,7 @@ export const AnalyticsPage: React.FC = () => {
 
           {/* Pipeline Stage Distribution (1 col) */}
           <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xl flex flex-col justify-between space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-200">Pipeline Breakdown</h3>
-              <p className="text-xs text-slate-400">Current candidate distribution by stage.</p>
-            </div>
+            <h3 className="text-sm font-bold text-slate-200">Stage Breakdown</h3>
 
             <div className="space-y-3 py-2 flex-1 flex flex-col justify-center">
               {data &&
@@ -281,11 +252,6 @@ export const AnalyticsPage: React.FC = () => {
                   );
                 })}
             </div>
-
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Pipeline health: 15-20 active applications recommended for maximum yield.</span>
-            </div>
           </div>
         </div>
 
@@ -293,20 +259,15 @@ export const AnalyticsPage: React.FC = () => {
         <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xl space-y-4">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400" />
-            <h3 className="text-sm font-bold text-slate-200">
-              Average Stage Turnaround Times (Days in Stage)
-            </h3>
+            <h3 className="text-sm font-bold text-slate-200">Average Days per Stage</h3>
           </div>
-          <p className="text-xs text-slate-400">
-            Calculated from application status history to reveal where hiring bottlenecks occur.
-          </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
             {[
-              { stage: 'wishlist', label: 'Wishlist → Applied', target: '2-4 days' },
-              { stage: 'applied', label: 'Applied → Assessment', target: '7-14 days' },
-              { stage: 'oa', label: 'OA → Tech Interview', target: '5-7 days' },
-              { stage: 'interview', label: 'Interview → Offer', target: '10-21 days' },
+              { stage: 'wishlist', label: 'Wishlist → Applied' },
+              { stage: 'applied', label: 'Applied → Assessment' },
+              { stage: 'oa', label: 'OA → Interview' },
+              { stage: 'interview', label: 'Interview → Offer' },
             ].map((st) => {
               const days = data?.averageDaysPerStage[st.stage] ?? 0;
               return (
@@ -318,77 +279,42 @@ export const AnalyticsPage: React.FC = () => {
                   <div className="text-2xl font-extrabold text-slate-100 font-mono">
                     {loading ? '...' : `${days} d`}
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-1">Typical: {st.target}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* 1-Click Chrome / Edge Browser Extension */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-950/40 via-slate-900 to-indigo-950/30 border border-blue-800/40 shadow-xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                <Bookmark className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-100">
-                  1-Click Job Clipper (LinkedIn & Naukri)
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Clip job postings, salary, and full JD directly into your HireTrack board via the browser extension.
-                </p>
-              </div>
+        {/* Browser Extension Token */}
+        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+              <Bookmark className="w-4 h-4" />
             </div>
-
-            <span className="self-start sm:self-auto text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/30">
-              Manifest V3 Extension
-            </span>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-3">
             <div>
-              <span className="text-xs font-bold text-slate-200 block mb-1">
-                Browser Extension (Edge & Chrome)
-              </span>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                The extension source is ready in your project at{' '}
-                <code className="text-[11px] text-blue-300 font-mono">extension/</code>. Edge and Chrome use the exact same Manifest V3 engine.
+              <h3 className="text-sm font-bold text-slate-100">Browser Job Clipper</h3>
+              <p className="text-xs text-slate-400">
+                Save job postings from LinkedIn, Indeed, and Naukri directly to your board.
               </p>
             </div>
-
-            <div className="p-3 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-300 space-y-1.5">
-              <div>1. In Edge, navigate to <code className="text-blue-400 font-mono">edge://extensions</code>.</div>
-              <div>2. Turn on <strong>Developer mode</strong> (left sidebar switch in Edge).</div>
-              <div>3. Click <strong>&quot;Load unpacked&quot;</strong> and select the <code className="text-blue-400 font-mono">extension</code> folder.</div>
-              <div>4. Click the extension icon — it will <strong>auto-detect your login</strong>! Or copy your short-lived token below:</div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button
-                onClick={handleCopyToken}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/15 border border-blue-500/30 text-blue-300 text-xs font-semibold hover:bg-blue-600/25 transition-colors"
-              >
-                {copiedToken ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">Token Copied to Clipboard!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy My Extension Token</span>
-                  </>
-                )}
-              </button>
-
-              <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Ready for LinkedIn & Naukri</span>
-              </div>
-            </div>
           </div>
+
+          <button
+            onClick={handleCopyToken}
+            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600/15 border border-blue-500/30 text-blue-300 text-xs font-semibold hover:bg-blue-600/25 transition-colors shrink-0"
+          >
+            {copiedToken ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Extension Token</span>
+              </>
+            )}
+          </button>
         </div>
       </main>
     </div>

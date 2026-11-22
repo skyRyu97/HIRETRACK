@@ -18,7 +18,6 @@ import { JobDrawer } from './JobDrawer';
 import {
   Plus,
   Search,
-  Filter,
   Briefcase,
   TrendingUp,
   Award,
@@ -190,22 +189,22 @@ export const KanbanBoard: React.FC = () => {
       )}
 
       {/* Top Action & Search Bar */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Metrics readout */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
             <Briefcase className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-slate-400">Total Tracked:</span>
+            <span className="text-slate-400">Total:</span>
             <span className="font-bold text-slate-100">{totalCount}</span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
             <TrendingUp className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-slate-400">In Active Pipeline:</span>
+            <span className="text-slate-400">Active:</span>
             <span className="font-bold text-purple-300">{activeInterviews}</span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
             <Award className="w-3.5 h-3.5 text-emerald-400" />
             <span className="text-slate-400">Offers:</span>
             <span className="font-bold text-emerald-400">{offersCount}</span>
