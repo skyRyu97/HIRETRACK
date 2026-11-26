@@ -183,7 +183,7 @@ export const JobDrawer: React.FC<JobDrawerProps> = ({ job, onClose, onEdit }) =>
             </div>
 
             {/* AI Matcher Section */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 border border-indigo-800/40 shadow-xl space-y-4">
+            <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
                   <Sparkles className="w-4 h-4" />

@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('hiretrack-theme') as ThemeMode;
-    return saved === 'light' || saved === 'gray' || saved === 'dark' ? saved : 'dark';
+    return saved === 'light' || saved === 'gray' || saved === 'dark' ? saved : 'light';
   });
 
   const setTheme = (newTheme: ThemeMode) => {

@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import {
   LogOut,
   User as UserIcon,
-  Sparkles,
+  Briefcase,
   LayoutDashboard,
   FileText,
   BarChart3,
@@ -46,11 +46,11 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to="/board" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center">
+              <Briefcase className="w-4 h-4 text-white" />
             </div>
             <div>
-              <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
+              <span className="text-lg font-bold text-slate-100">
                 HireTrack AI
               </span>
             </div>
@@ -65,11 +65,10 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                    isActive
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isActive
                       ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{link.label}</span>
@@ -116,11 +115,10 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center p-0.5 rounded-xl bg-slate-800/80 border border-slate-700/60 gap-0.5">
             <button
               onClick={() => setTheme('dark')}
-              className={`p-1.5 rounded-lg transition-all ${
-                theme === 'dark'
+              className={`p-1.5 rounded-lg transition-all ${theme === 'dark'
                   ? 'bg-slate-900 text-blue-400 shadow-sm border border-slate-700'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
               title="Dark Theme"
             >
               <Moon className="w-3.5 h-3.5" />
@@ -128,23 +126,21 @@ export const Navbar: React.FC = () => {
 
             <button
               onClick={() => setTheme('gray')}
-              className={`p-1.5 rounded-lg transition-all ${
-                theme === 'gray'
+              className={`p-1.5 rounded-lg transition-all ${theme === 'gray'
                   ? 'bg-[#414D65] text-[#F4F6FC] shadow-sm border border-[#596780]'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Navy Theme"
+                }`}
+              title="Sage Slate Theme"
             >
               <Contrast className="w-3.5 h-3.5 text-blue-300" />
             </button>
 
             <button
               onClick={() => setTheme('light')}
-              className={`p-1.5 rounded-lg transition-all ${
-                theme === 'light'
+              className={`p-1.5 rounded-lg transition-all ${theme === 'light'
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-300'
                   : 'text-slate-400 hover:text-slate-200'
-              }`}
+                }`}
               title="Light Theme"
             >
               <Sun className="w-3.5 h-3.5 text-amber-500" />

@@ -7,15 +7,15 @@
 
 body {
   width: 320px;
-  background-color: #0b1020;
-  color: #f1f5f9;
+  background-color: #18191d;
+  color: #f3f4f6;
   font-size: 12px;
 }
 
 .header {
   padding: 12px 14px;
-  background-color: #111827;
-  border-bottom: 1px solid #1f293d;
+  background-color: #202228;
+  border-bottom: 1px solid #2e313a;
   display: flex;
   align-items: center;
   justify-content: space-between;
